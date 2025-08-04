@@ -1,0 +1,22 @@
+{
+  "name": "dsmr-logger-ui",
+  "version": "1.0.0",
+  "description": "DSMR Logger UI with file upload utility",
+  "main": "fm-upload.js",
+  "scripts": {
+    "upload": "node fm-upload.js",
+    "deploy": "node fm-upload.js dashboard.html dsmr-mw9.local:"
+  },
+  "dependencies": {
+    "form-data": "^4.0.4"
+  },
+  "keywords": [
+    "dsmr",
+    "energy",
+    "monitoring",
+    "filemanager",
+    "upload"
+  ],
+  "author": "",
+  "license": "MIT"
+}

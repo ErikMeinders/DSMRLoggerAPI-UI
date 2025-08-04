@@ -1,49 +1,135 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset=utf-8>
-    <meta http-equiv=X-UA-Compatible content="IE=edge">
-    <meta name=viewport content="width=device-width,initial-scale=1">
-    <link rel=icon href=/favicon.ico> <title>kW trend</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="icon" href="/favicon.ico">
+    <title>DSMR 3-Phase Power Monitor</title>
     <link href="https://fonts.googleapis.com/css?family=Dosis:400,700" rel="stylesheet">
-    <link href="3phase.css" rel="stylesheet">
-
+    
+    <!-- Highcharts CDN -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-more.js"></script>
     <script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
     
+    <style>
+        * {
+            box-sizing: border-box
+        }
+          
+        html {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-family: 'Dosis', sans-serif;
+            line-height: 1.6;
+            color: #666;
+            background: #F6F6F6;
+        }
+         
+        .outer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        @media screen and (min-width: 600px) {
+            .card {
+              flex: 1 1 calc(50% - 2rem);
+            }
+        }
+          
+        @media screen and (min-width: 900px) {
+            .card {
+              flex: 1 1 calc(33% - 2rem);
+            }
+        }
+
+        .card {
+            margin: 1rem;
+            background: white;
+            box-shadow: 2px 4px 25px rgba(0, 0, 0, .1);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all .2s linear;
+            max-width: 200px;  
+            min-width: 180px;
+        }
+
+        .card:hover {
+            box-shadow: 2px 8px 45px rgba(0, 0, 0, .15);
+            transform: translate3D(0, -2px, 0);
+        }
+
+        .chart-container {
+            width: 200px;
+            float: none;
+            height: 200px;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 0.5rem 1.5rem;
+            background: #314b77;
+            margin: 0 0 0rem 0;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 3rem;
+            padding: 0.2rem 0.2rem;	
+            margin: 0;
+        }
+
+        h3 {
+            text-align: center;
+            font-size: 1.3rem;
+            font-family: 'Heiti TC';
+            padding: 0.2rem 0.2rem;	
+            margin: 0;
+        }
+
+        hr {
+            width: 80%;
+            opacity: 0.5;
+        }
+    </style>
 </head>
   
-<body><noscript><strong>Please enable JavaScript to continue.</strong></noscript>
-    <div class=outer>
-        <div class=card id=l1>
-            <h1 id=power_delivered_l1h>Phase 1</h1>
-	        <div class="chart-container" id="container-1">I</div>
+<body>
+    <noscript><strong>Please enable JavaScript to continue.</strong></noscript>
+    <div class="outer">
+        <div class="card" id="l1">
+            <h1 id="power_delivered_l1h">Phase 1</h1>
+            <div class="chart-container" id="container-1">I</div>
             <hr/>
             <div style="text-align:center">Kilowatt</div>
             <h2 id="power_delivered_l1">0.0</h2>
             <h3>max: <span id="power_delivered_1max">0.0</span></h3>
             <h3>min: <span id="power_delivered_1min">0.0</span></h3>
         </div>
-        <div class=card id=l2>
-            <h1 id=power_delivered_l2h>Phase 2</h1>
+        <div class="card" id="l2">
+            <h1 id="power_delivered_l2h">Phase 2</h1>
             <div class="chart-container" id="container-2">II</div>
             <hr/>
             <div style="text-align:center">Kilowatt</div>
-            <h2 id=power_delivered_l2>0.0</h2>
+            <h2 id="power_delivered_l2">0.0</h2>
             <h3>max: <span id="power_delivered_2max">0.0</span></h3>
             <h3>min: <span id="power_delivered_2min">0.0</span></h3>
         </div>
-        <div class=card id=l3>
-            <h1 id=power_delivered_l3h>Phase 3</h1>
+        <div class="card" id="l3">
+            <h1 id="power_delivered_l3h">Phase 3</h1>
             <div class="chart-container" id="container-3">III</div>
             <hr/>
             <div style="text-align:center">Kilowatt</div>
-            <h2 id=power_delivered_l3>0.0</h2>
+            <h2 id="power_delivered_l3">0.0</h2>
             <h3>max: <span id="power_delivered_3max">0.0</span></h3>
             <h3>min: <span id="power_delivered_3min">0.0</span></h3>
         </div>
-        <div class=card id=l4>
-            <h1 id=power_delivered_th>Total</h1>
+        <div class="card" id="l4">
+            <h1 id="power_delivered_th">Total</h1>
             <div class="chart-container" id="container-t">IV</div>
             <hr/>
             <div style="text-align:center">Kilowatt</div>
@@ -52,10 +138,686 @@
             <h3>min: <span id="power_delivered_tmin">0.0</span></h3>
         </div>
     </div>    
-    <script src="3phase.js"></script>
+
     <script>
-        update() // fill fist-time data
-        var timer = setInterval(update, 2 * 1000) // update every n seconds
+        // Debug: Show current location and API gateway
+        console.log('Current location:', window.location.href);
+        console.log('API Gateway will be:', window.location.protocol+'//'+window.location.host+'/api/v2/');
+
+        // Check if we're on the DSMR device or elsewhere
+        const isDSMRDevice = window.location.hostname === 'dsmr-mw9.local' || window.location.hostname === '192.168.2.234';
+
+        const APIGW = isDSMRDevice ? 
+            window.location.protocol+'//'+window.location.host+'/api/v2/' : 
+            'http://dsmr-mw9.local/api/v2/';
+
+        // Fallback API endpoints to try if CORS fails
+        const FALLBACK_ENDPOINTS = [
+            'http://192.168.2.234/api/v2/',
+            'https://dsmr-mw9.local/api/v2/',
+            window.location.protocol+'//'+window.location.host+'/api/v2/'
+        ];
+
+        // CORS proxy services (free options)
+        const CORS_PROXIES = [
+            'https://cors-anywhere.herokuapp.com/',
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?'
+        ];
+
+        let currentAPIGW = APIGW;
+        let corsIssueDetected = false;
+        let useProxy = false;
+        let currentProxyIndex = 0;
+
+        console.log('Using API Gateway:', APIGW);
+        console.log('Is DSMR Device:', isDSMRDevice);
+
+        // Enhanced fetch function with CORS handling and proxy support
+        async function fetchWithCORSHandling(url, options = {}) {
+            const fetchOptions = {
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                ...options
+            };
+
+            try {
+                const response = await fetch(url, fetchOptions);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response;
+            } catch (error) {
+                // Check if it's a CORS error
+                if (error.message.includes('CORS') || 
+                    error.message.includes('Network request failed') ||
+                    error.message.includes('Failed to fetch')) {
+                    
+                    console.warn('CORS error detected:', error);
+                    corsIssueDetected = true;
+                    throw error;
+                }
+                throw error;
+            }
+        }
+
+        // Try using CORS proxy services
+        async function fetchWithProxy(originalUrl) {
+            for (let i = 0; i < CORS_PROXIES.length; i++) {
+                try {
+                    const proxyUrl = CORS_PROXIES[i] + encodeURIComponent(originalUrl);
+                    console.log('Trying CORS proxy:', proxyUrl);
+                    
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) {
+                        throw new Error(`Proxy returned ${response.status}`);
+                    }
+                    
+                    // Handle different proxy response formats
+                    let data;
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        data = await response.json();
+                    } else {
+                        const text = await response.text();
+                        try {
+                            data = JSON.parse(text);
+                        } catch (e) {
+                            throw new Error('Proxy returned non-JSON response');
+                        }
+                    }
+                    
+                    console.log('Proxy successful:', CORS_PROXIES[i]);
+                    useProxy = true;
+                    currentProxyIndex = i;
+                    return data;
+                    
+                } catch (error) {
+                    console.warn(`Proxy ${CORS_PROXIES[i]} failed:`, error);
+                    continue;
+                }
+            }
+            throw new Error('All CORS proxies failed');
+        }
+
+        // JSONP fallback (if API supports it)
+        function fetchJSONP(url, callbackName = 'callback') {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                const uniqueCallback = 'jsonp_callback_' + Math.round(100000 * Math.random());
+                
+                // Create global callback
+                window[uniqueCallback] = function(data) {
+                    document.head.removeChild(script);
+                    delete window[uniqueCallback];
+                    resolve(data);
+                };
+                
+                // Handle errors
+                script.onerror = function() {
+                    document.head.removeChild(script);
+                    delete window[uniqueCallback];
+                    reject(new Error('JSONP request failed'));
+                };
+                
+                // Set timeout
+                setTimeout(() => {
+                    if (window[uniqueCallback]) {
+                        document.head.removeChild(script);
+                        delete window[uniqueCallback];
+                        reject(new Error('JSONP request timeout'));
+                    }
+                }, 10000);
+                
+                script.src = url + (url.includes('?') ? '&' : '?') + callbackName + '=' + uniqueCallback;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Function to try different API endpoints with all methods
+        async function fetchFromEndpoints(endpoint) {
+            const endpointsToTry = [currentAPIGW, ...FALLBACK_ENDPOINTS];
+            
+            for (const baseUrl of endpointsToTry) {
+                const fullUrl = baseUrl + endpoint;
+                
+                try {
+                    // Method 1: Direct fetch (works if same origin or CORS enabled)
+                    console.log('Trying direct fetch:', fullUrl);
+                    const response = await fetchWithCORSHandling(fullUrl);
+                    const data = await response.json();
+                    
+                    if (baseUrl !== currentAPIGW) {
+                        console.log('Switched to working endpoint:', baseUrl);
+                        currentAPIGW = baseUrl;
+                    }
+                    return data;
+                    
+                } catch (directError) {
+                    console.warn(`Direct fetch failed for ${fullUrl}:`, directError);
+                    
+                    // Method 2: Try CORS proxy services
+                    try {
+                        console.log('Trying CORS proxies for:', fullUrl);
+                        const proxyData = await fetchWithProxy(fullUrl);
+                        
+                        if (baseUrl !== currentAPIGW) {
+                            console.log('Switched to working endpoint via proxy:', baseUrl);
+                            currentAPIGW = baseUrl;
+                        }
+                        return proxyData;
+                        
+                    } catch (proxyError) {
+                        console.warn('CORS proxy failed:', proxyError);
+                        
+                        // Method 3: Try JSONP (unlikely to work with DSMR API)
+                        try {
+                            console.log('Trying JSONP for:', fullUrl);
+                            const jsonpData = await fetchJSONP(fullUrl);
+                            return jsonpData;
+                            
+                        } catch (jsonpError) {
+                            console.warn('JSONP failed:', jsonpError);
+                            continue;
+                        }
+                    }
+                }
+            }
+            
+            throw new Error(`All methods failed for: ${endpoint}`);
+        }
+
+        // Show CORS warning with solutions
+        function showCORSWarning() {
+            if (corsIssueDetected && !document.getElementById('cors-warning')) {
+                const warningDiv = document.createElement('div');
+                warningDiv.id = 'cors-warning';
+                warningDiv.innerHTML = `
+                    <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; margin: 10px; border-radius: 4px; font-size: 14px;">
+                        <strong>CORS Issue Detected</strong><br/>
+                        <p>Cross-origin requests are blocked. Trying proxy services...</p>
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: bold;">Manual Solutions:</summary>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li>Access this page directly from: <code>http://dsmr-mw9.local</code> or <code>http://192.168.2.234</code></li>
+                                <li>For Chrome: Start with <code>--disable-web-security --user-data-dir="temp"</code> (development only)</li>
+                                <li>Install CORS browser extension (like "CORS Unblock")</li>
+                                <li>Use a local development server with proxy configuration</li>
+                            </ul>
+                        </details>
+                        <button onclick="location.reload()" style="margin-top: 10px; padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer;">Retry</button>
+                    </div>
+                `;
+                document.body.insertBefore(warningDiv, document.body.firstChild);
+            }
+        }
+
+        // Add connection status indicator
+        function updateConnectionStatus(status, message) {
+            let statusDiv = document.getElementById('connection-status');
+            if (!statusDiv) {
+                statusDiv = document.createElement('div');
+                statusDiv.id = 'connection-status';
+                statusDiv.style.cssText = 'position: fixed; top: 10px; right: 10px; padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 1000;';
+                document.body.appendChild(statusDiv);
+            }
+            
+            const colors = {
+                'connected': '#28a745',
+                'proxy': '#ffc107', 
+                'error': '#dc3545'
+            };
+            
+            statusDiv.style.backgroundColor = colors[status] || '#6c757d';
+            statusDiv.style.color = 'white';
+            statusDiv.textContent = message;
+        }
+
+        const AMPS=25
+        const PHASES=3
+
+        var AmpG = [4];
+
+        var PhaseAmps = [4];
+        var MaxAmps = [4];
+        var MinAmps = [4];  // For tracking max production (negative values)
+
+        var TotalAmps=0.0, 
+            minKW = [4], 
+            maxKW = [4];
+
+        var gaugeOptions = {
+            chart: {
+                type: 'gauge',
+                height: 200,
+                backgroundColor: 'transparent',
+                plotBorderWidth: 0,
+                plotShadow: false
+            },
+
+            title: {
+                text: null
+            },
+
+            tooltip: {
+                enabled: false
+            },
+
+            credits: {
+                enabled: false
+            },
+
+            pane: {
+                startAngle: -90,
+                endAngle: 90,
+                center: ['50%', '70%'],
+                size: '105%',
+                background: [{
+                    backgroundColor: 'transparent',
+                    borderWidth: 0,
+                    outerRadius: '100%',
+                    innerRadius: '0%',
+                    shape: 'arc'
+                }]
+            },
+
+            yAxis: {
+                min: -25,
+                max: 25,
+                
+                minorTickInterval: 5,
+                minorTickWidth: 1,
+                minorTickLength: 8,
+                minorTickPosition: 'inside',
+                minorTickColor: '#adb5bd',
+
+                tickPixelInterval: 40,
+                tickWidth: 2,
+                tickPosition: 'inside',
+                tickLength: 15,
+                tickColor: '#495057',
+                labels: {
+                    step: 1,
+                    rotation: 'auto',
+                    style: {
+                        fontSize: '10px',
+                        color: '#495057'
+                    }
+                },
+                title: {
+                    text: 'Amps',
+                    y: 40,
+                    style: {
+                        fontSize: '12px',
+                        color: '#6c757d'
+                    }
+                },
+                plotBands: [{
+                    from: -25,
+                    to: -5,
+                    color: 'rgba(85, 191, 59, 0.3)',  // Semi-transparent green
+                    innerRadius: '80%',
+                    outerRadius: '100%'
+                }, {
+                    from: -5,
+                    to: 5,
+                    color: 'rgba(221, 223, 13, 0.3)',  // Semi-transparent yellow
+                    innerRadius: '80%',
+                    outerRadius: '100%'
+                }, {
+                    from: 5,
+                    to: 25,
+                    color: 'rgba(223, 83, 83, 0.3)',  // Semi-transparent red
+                    innerRadius: '80%',
+                    outerRadius: '100%'
+                }]
+            },
+
+            plotOptions: {
+                gauge: {
+                    dataLabels: {
+                        y: 60,
+                        borderWidth: 0,
+                        useHTML: true,
+                        style: {
+                            fontSize: '14px',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    dial: {
+                        radius: '75%',
+                        backgroundColor: '#495057',
+                        borderColor: '#343a40',
+                        borderWidth: 0,
+                        baseWidth: 1,
+                        topWidth: 1,
+                        baseLength: '0%',
+                        rearLength: '3%'
+                    },
+                    pivot: {
+                        backgroundColor: '#343a40',
+                        borderColor: '#495057',
+                        borderWidth: 1,
+                        radius: 2
+                    }
+                }
+            }
+        };
+
+        var AmpOptions = {
+            series: [{
+                name: 'Amps',
+                data: [0],
+                dataLabels: {
+                    format: '<div style="text-align:center;background:rgba(255,255,255,0.9);border-radius:4px;padding:2px 6px;box-shadow:0 1px 3px rgba(0,0,0,0.1)"><span style="font-size:14px;color:#495057;font-weight:bold">{y}</span><br/><span style="font-size:11px;color:#6c757d">A</span></div>'
+                },
+                tooltip: {
+                    valueSuffix: ' A'
+                }
+            }]
+        };
+
+        function abs(x) {
+            return (x < 0 ? -x : x);
+        }
+
+        function update() {
+            updateConnectionStatus('connecting', 'Fetching data...');
+            
+            var phase;
+            for( phase=1 ; phase <= PHASES ; phase++ )
+            {
+                // Fix closure issue by capturing phase value
+                (function(currentPhase) {
+                    // Use the enhanced fetch function
+                    const deliveredEndpoint = "sm/fields/power_delivered_l"+currentPhase;
+                    const returnedEndpoint = "sm/fields/power_returned_l"+currentPhase;
+                    
+                    console.log('Fetching Phase', currentPhase, ':', deliveredEndpoint, returnedEndpoint);
+                    
+                    // Try to fetch both with enhanced error handling
+                    const fetchDelivered = fetchFromEndpoints(deliveredEndpoint).catch(() => ({fields: {}}));
+                    const fetchReturned = fetchFromEndpoints(returnedEndpoint).catch(() => ({fields: {}}));
+                    
+                    Promise.all([fetchDelivered, fetchReturned])
+                    .then(([deliveredJson, returnedJson]) => 
+                      {
+                        // Update connection status on first successful fetch
+                        if (currentPhase === 1) {
+                            updateConnectionStatus(
+                                useProxy ? 'proxy' : 'connected', 
+                                useProxy ? 'Connected via proxy' : 'Direct connection'
+                            );
+                        }
+                        
+                        // V2 API format: json.fields is now an object, not an array
+                        const deliveredField = "power_delivered_l" + currentPhase;
+                        const returnedField = "power_returned_l" + currentPhase;
+                        
+                        if (deliveredJson.fields && deliveredJson.fields[deliveredField] !== undefined &&
+                            returnedJson.fields && returnedJson.fields[returnedField] !== undefined) {
+                            
+                            let myPhase = currentPhase;
+                            
+                            let cvKW = document.getElementById(deliveredField).innerHTML
+                            let deliveredKW = Number(deliveredJson.fields[deliveredField])
+                            let returnedKW = Number(returnedJson.fields[returnedField])
+                            let netKW = deliveredKW - returnedKW  // Net consumption (positive) or production (negative)
+                            let netA = netKW*1000.0/220.0  // estimated amps using fixed voltage
+
+                        // console.log("about to get elements");
+                        // update view - show consumption and production separately
+                        
+                        document.getElementById(deliveredField).innerHTML = 
+                            `<span style="color:#DF5353;font-size:3rem;font-weight:bold">${deliveredKW.toFixed(3)}</span><br/>` +
+                            `<span style="color:#55BF3B;font-size:1.5rem">${returnedKW.toFixed(3)}</span>`;
+
+                        // Track min/max for net values
+                        if (minKW[myPhase] == 0.0 || netKW < minKW[myPhase])
+                        {
+                            minKW[myPhase] = netKW                      
+                            console.log(`power_delivered_${myPhase}min`);
+                            document.getElementById(`power_delivered_${myPhase}min`).innerHTML = netKW.toFixed(3);
+                        }
+
+                        if (netKW > maxKW[myPhase])
+                        {
+                            maxKW[myPhase] = netKW;
+                            console.log(`power_delivered_${myPhase}max`);
+                            document.getElementById(`power_delivered_${myPhase}max`).innerHTML = netKW.toFixed(3);
+                        }
+
+                        // update gauge with net values
+                        var chart = AmpG[myPhase];
+                        if (chart && chart.series && chart.series[0]) {
+                            var point = chart.series[0].points[0];
+                            var newValue = Math.round(netA * 100.0) / 100.0;
+                            
+                            point.update(newValue);
+                            
+                            // Track max values for reference
+                            if (netA > 0 && netA > MaxAmps[myPhase]) {
+                                MaxAmps[myPhase] = netA;
+                            }
+                            if (netA < 0 && Math.abs(netA) > Math.abs(MinAmps[myPhase] || 0)) {
+                                MinAmps[myPhase] = netA;
+                            }
+                        } else {
+                            console.error('Chart not initialized for phase', myPhase);
+                        } 
+                        
+                        // Header coloring based on current net status (not trend)
+                        
+                        if (netKW < -0.005) {
+                            // Net production (feeding back to grid)
+                            document.getElementById(deliveredField+"h").style.background="#55BF3B"
+                        } else if (netKW > 0.005) {
+                            // Net consumption (drawing from grid)
+                            document.getElementById(deliveredField+"h").style.background="#DF5353"
+                        } else {
+                            // Balanced (near zero net)
+                            document.getElementById(deliveredField+"h").style.background="#314b77"
+                        }
+
+                        PhaseAmps[myPhase] = netA;
+                    }
+                  })
+                .catch(function(error) {
+                    console.error('Error fetching data for phase ' + currentPhase + ':', error);
+                    
+                    // Update connection status
+                    updateConnectionStatus('error', 'Connection failed');
+                    
+                    // Show CORS warning if detected
+                    showCORSWarning();
+                    
+                    // Display error in the UI with more specific message
+                    const errorMessage = corsIssueDetected ? 'CORS Error' : 'Network Error';
+                    document.getElementById('power_delivered_l' + currentPhase).innerHTML = errorMessage;
+                    // Set phase amps to 0 to prevent NaN in total calculation
+                    PhaseAmps[currentPhase] = 0.0;
+                });
+                })(phase); // Close IIFE and pass current phase value
+                
+            }
+
+            TotalAmps = 0.0;
+            for(t=1; t<= PHASES ; t++) {
+                if (!isNaN(PhaseAmps[t]) && PhaseAmps[t] !== undefined) {
+                    TotalAmps += PhaseAmps[t];
+                }
+            }
+
+            if(isNaN(TotalAmps) || TotalAmps === undefined)
+                TotalAmps = 0.0
+
+            let TotalKW = TotalAmps * 220.0 / 1000.0
+
+            // console.log(minTotal, maxTotal,TotalAmps)
+            if (minKW[4] == 0.0 || TotalKW < minKW[4])
+            {
+                minKW[4] = TotalKW;
+                document.getElementById("power_delivered_tmin").innerHTML = TotalKW.toFixed(3);
+            }
+                
+
+            if (TotalKW > maxKW[4])
+            {
+                maxKW[4] = TotalKW;
+                document.getElementById("power_delivered_tmax").innerHTML = TotalKW.toFixed(3);
+            }
+            
+            // Show net total (can be negative for net production)
+            let displayText = TotalKW >= 0 ? 
+                `<span style="color:#DF5353">${TotalKW.toFixed(3)}</span>` : 
+                `<span style="color:#55BF3B">${TotalKW.toFixed(3)}</span>`;
+            document.getElementById("power_delivered_t").innerHTML = displayText;
+
+            // Update total gauge
+            if (AmpG[4] && AmpG[4].series && AmpG[4].series[0]) {
+                var point = AmpG[4].series[0].points[0];
+                var roundedTotal = Math.round(TotalAmps * 100.0) / 100.0;
+                
+                point.update(roundedTotal);
+
+                // Track max values for reference
+                if (TotalAmps > 0 && TotalAmps > MaxAmps[4]) {
+                    MaxAmps[4] = TotalAmps;
+                }
+                if (TotalAmps < 0 && Math.abs(TotalAmps) > Math.abs(MinAmps[4] || 0)) {
+                    MinAmps[4] = TotalAmps;
+                }
+            } else {
+                console.error('Total chart not initialized');
+            }
+        }
+
+        // Test endpoints on load with better error handling
+        async function testEndpoints() {
+            try {
+                updateConnectionStatus('connecting', 'Testing connection...');
+                const testData = await fetchFromEndpoints('sm/fields/power_delivered_l1');
+                console.log('Initial endpoint test successful:', testData);
+                updateConnectionStatus(
+                    useProxy ? 'proxy' : 'connected', 
+                    useProxy ? 'Connected via proxy' : 'Direct connection'
+                );
+            } catch (error) {
+                console.error('All endpoints failed during initial test:', error);
+                updateConnectionStatus('error', 'All connections failed');
+                showCORSWarning();
+            }
+        }
+
+        // Run endpoint test
+        testEndpoints();
+
+        try {
+            AmpG[1] = Highcharts.chart('container-1', Highcharts.merge(gaugeOptions, AmpOptions));
+            console.log('Phase 1 chart initialized:', AmpG[1]);
+        } catch (e) {
+            console.error('Error initializing Phase 1 chart:', e);
+        }
+
+        try {
+            AmpG[2] = Highcharts.chart('container-2', Highcharts.merge(gaugeOptions, AmpOptions));
+            console.log('Phase 2 chart initialized:', AmpG[2]);
+        } catch (e) {
+            console.error('Error initializing Phase 2 chart:', e);
+        }
+
+        try {
+            AmpG[3] = Highcharts.chart('container-3', Highcharts.merge(gaugeOptions, AmpOptions));
+            console.log('Phase 3 chart initialized:', AmpG[3]);
+        } catch (e) {
+            console.error('Error initializing Phase 3 chart:', e);
+        }
+
+        try {
+            AmpG[4] = Highcharts.chart('container-t', Highcharts.merge(gaugeOptions, {
+                yAxis: {
+                    min: -75,
+                    max: 75,
+                    
+                    minorTickInterval: 15,
+                    minorTickWidth: 1,
+                    minorTickLength: 8,
+                    minorTickPosition: 'inside',
+                    minorTickColor: '#adb5bd',
+
+                    tickPixelInterval: 40,
+                    tickWidth: 2,
+                    tickPosition: 'inside',
+                    tickLength: 15,
+                    tickColor: '#495057',
+                    labels: {
+                        step: 1,
+                        rotation: 'auto',
+                        style: {
+                            fontSize: '10px',
+                            color: '#495057'
+                        }
+                    },
+                    title: {
+                        text: 'Total Amps',
+                        y: 40,
+                        style: {
+                            fontSize: '12px',
+                            color: '#6c757d'
+                        }
+                    },
+                    plotBands: [{
+                        from: -75,
+                        to: -15,
+                        color: 'rgba(85, 191, 59, 0.3)',  // Semi-transparent green
+                        innerRadius: '80%',
+                        outerRadius: '100%'
+                    }, {
+                        from: -15,
+                        to: 15,
+                        color: 'rgba(221, 223, 13, 0.3)',  // Semi-transparent yellow
+                        innerRadius: '80%',
+                        outerRadius: '100%'
+                    }, {
+                        from: 15,
+                        to: 75,
+                        color: 'rgba(223, 83, 83, 0.3)',  // Semi-transparent red
+                        innerRadius: '80%',
+                        outerRadius: '100%'
+                    }]
+                },
+
+                series: [{
+                    name: 'Total Amps',
+                    data: [0],
+                    dataLabels: {
+                        format: '<div style="text-align:center;background:rgba(255,255,255,0.9);border-radius:4px;padding:2px 6px;box-shadow:0 1px 3px rgba(0,0,0,0.1)"><span style="font-size:14px;color:#495057;font-weight:bold">{y}</span><br/><span style="font-size:11px;color:#6c757d">A</span></div>'
+                    },
+                    tooltip: {
+                        valueSuffix: ' A'
+                    }
+                }]
+            }));
+            console.log('Total chart initialized:', AmpG[4]);
+        } catch (e) {
+            console.error('Error initializing Total chart:', e);
+        }
+
+        // Initialize arrays
+        for(i=1 ; i <= PHASES+1 ; i++) {
+            MaxAmps[i] = 0.0;
+            MinAmps[i] = 0.0;
+            PhaseAmps[i] = 0.0;
+            minKW[i] = 0.0;
+            maxKW[i] = 0.0;
+        }
+
+        // Start the update cycle
+        update(); // fill first-time data
+        var timer = setInterval(update, 2 * 1000); // update every 2 seconds
     </script>
-</body> 
+</body>
 </html>

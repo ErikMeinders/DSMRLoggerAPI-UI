@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Energy Dashboard - DSMR Logger</title>
+    
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    
+    <!-- Highcharts for Gauges -->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --info-color: #0891b2;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header .subtitle {
+            margin-top: 0.25rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-primary);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: var(--primary-color);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .metric-unit {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .trend-up { color: var(--danger-color); }
+        .trend-down { color: var(--success-color); }
+        .trend-neutral { color: var(--text-secondary); }
+
+        .phase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .phase-card {
+            background: var(--bg-primary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .phase-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .gauge-container {
+            height: 150px;
+            margin: 0.5rem 0;
+        }
+
+        .phase-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .chart-container {
+            background: var(--bg-primary);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .time-selector {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .time-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .time-btn:hover {
+            background: var(--bg-secondary);
+        }
+
+        .time-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-connected {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .status-connecting {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .phase-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        /* Configuration Panel Styles */
+        .config-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            transition: all 0.2s;
+        }
+
+        .config-button:hover {
+            background: #1d4ed8;
+            transform: scale(1.05);
+        }
+
+        .config-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100vh;
+            background: var(--bg-primary);
+            box-shadow: var(--shadow-lg);
+            z-index: 999;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            border-left: 1px solid var(--border-color);
+        }
+
+        .config-panel.open {
+            right: 0;
+        }
+
+        .config-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .config-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .config-header {
+            padding: 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .config-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .config-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: background 0.2s;
+        }
+
+        .config-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .config-content {
+            padding: 1.5rem;
+        }
+
+        .config-section {
+            margin-bottom: 2rem;
+        }
+
+        .config-section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .config-form-group {
+            margin-bottom: 1rem;
+        }
+
+        .config-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: border-color 0.2s;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .config-save {
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .config-save:hover {
+            background: #1d4ed8;
+        }
+
+        .config-reset {
+            width: 100%;
+            background: var(--text-secondary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .config-reset:hover {
+            background: #4b5563;
+        }
+
+        .config-help {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>
+            <i class="fas fa-bolt"></i>
+            Energy Dashboard
+        </h1>
+        <div class="subtitle">Real-time monitoring with historical comparisons</div>
+    </div>
+
+    <div class="container">
+        <!-- Connection Status -->
+        <div style="text-align: right; margin-bottom: 1rem;">
+            <span id="connection-status" class="status-indicator status-connecting">
+                <i class="fas fa-circle"></i>
+                Connecting...
+            </span>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Current Power Usage -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-lightning-bolt card-icon"></i>
+                        Current Power
+                    </div>
+                </div>
+                <div class="metric-value" id="current-power">
+                    <span style="color: var(--danger-color);">0.000</span>
+                    <span class="metric-unit">kW</span>
+                </div>
+                <div class="metric-trend" id="power-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>Consuming from grid</span>
+                </div>
+            </div>
+
+            <!-- Total Energy Today -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-calendar-day card-icon"></i>
+                        Energy Today
+                    </div>
+                </div>
+                <div class="metric-value" id="energy-today">
+                    0.000 <span class="metric-unit">kWh</span>
+                </div>
+                <div class="metric-trend" id="energy-today-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>vs yesterday</span>
+                </div>
+            </div>
+
+            <!-- Gas Usage -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-fire card-icon"></i>
+                        Gas Usage
+                    </div>
+                </div>
+                <div class="metric-value" id="gas-total">
+                    0.000 <span class="metric-unit">m³</span>
+                </div>
+                <div class="metric-trend" id="gas-trend">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Total consumption</span>
+                </div>
+            </div>
+
+            <!-- Cost Estimate -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-euro-sign card-icon"></i>
+                        Cost Today
+                    </div>
+                </div>
+                <div class="metric-value" id="cost-today">
+                    €0.00 <span class="metric-unit">est.</span>
+                </div>
+                <div class="metric-trend" id="cost-trend">
+                    <i class="fas fa-calculator"></i>
+                    <span>Electricity + Gas</span>
+                </div>
+            </div>
+
+            <!-- Month to Date -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-calendar-alt card-icon"></i>
+                        Month to Date
+                    </div>
+                </div>
+                <div class="metric-value" id="month-energy">
+                    0.000 <span class="metric-unit">kWh</span>
+                </div>
+                <div class="metric-trend" id="month-trend">
+                    <i class="fas fa-calendar"></i>
+                    <span>This month vs last month</span>
+                </div>
+            </div>
+
+            <!-- Monthly Gas -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-fire-flame-simple card-icon"></i>
+                        Gas This Month
+                    </div>
+                </div>
+                <div class="metric-value" id="month-gas">
+                    0.000 <span class="metric-unit">m³</span>
+                </div>
+                <div class="metric-trend" id="month-gas-trend">
+                    <i class="fas fa-calendar"></i>
+                    <span>Monthly consumption</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase Power Gauges -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <div class="chart-title">Phase Power Distribution</div>
+            </div>
+            <div class="phase-grid">
+                <div class="phase-card">
+                    <div class="phase-title">Phase 1</div>
+                    <div class="gauge-container" id="gauge-l1"></div>
+                    <div class="phase-stats">
+                        <span>V: <span id="voltage-l1">0</span>V</span>
+                        <span>A: <span id="current-l1">0</span>A</span>
+                    </div>
+                </div>
+                <div class="phase-card">
+                    <div class="phase-title">Phase 2</div>
+                    <div class="gauge-container" id="gauge-l2"></div>
+                    <div class="phase-stats">
+                        <span>V: <span id="voltage-l2">0</span>V</span>
+                        <span>A: <span id="current-l2">0</span>A</span>
+                    </div>
+                </div>
+                <div class="phase-card">
+                    <div class="phase-title">Phase 3</div>
+                    <div class="gauge-container" id="gauge-l3"></div>
+                    <div class="phase-stats">
+                        <span>V: <span id="voltage-l3">0</span>V</span>
+                        <span>A: <span id="current-l3">0</span>A</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historical Trends Chart -->
+        <div class="chart-container" id="historical-chart-container" style="display: none;">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    Weekly Energy Consumption
+                </div>
+                <div class="time-selector">
+                    <button class="time-btn active" onclick="showHistoricalChart('energy')">Energy</button>
+                    <button class="time-btn" onclick="showHistoricalChart('gas')">Gas</button>
+                </div>
+            </div>
+            <div style="height: 300px; position: relative;">
+                <canvas id="historical-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Button -->
+    <button class="config-button" onclick="openConfigPanel()">
+        <i class="fas fa-cog"></i>
+    </button>
+
+    <!-- Configuration Panel -->
+    <div class="config-overlay" id="config-overlay" onclick="closeConfigPanel()"></div>
+    <div class="config-panel" id="config-panel">
+        <div class="config-header">
+            <div class="config-title">Dashboard Settings</div>
+            <button class="config-close" onclick="closeConfigPanel()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="config-content">
+            <!-- Energy Prices Section -->
+            <div class="config-section">
+                <div class="config-section-title">
+                    <i class="fas fa-euro-sign"></i>
+                    Energy Prices
+                </div>
+                <div class="config-form-group">
+                    <label class="config-label" for="price-electricity-low">Electricity Tariff 1 (Low)</label>
+                    <input type="number" class="config-input" id="price-electricity-low" step="0.001" min="0" placeholder="0.230">
+                    <div class="config-help">Price per kWh in EUR (typically night/weekend rate)</div>
+                </div>
+                <div class="config-form-group">
+                    <label class="config-label" for="price-electricity-high">Electricity Tariff 2 (High)</label>
+                    <input type="number" class="config-input" id="price-electricity-high" step="0.001" min="0" placeholder="0.250">
+                    <div class="config-help">Price per kWh in EUR (typically day rate)</div>
+                </div>
+                <div class="config-form-group">
+                    <label class="config-label" for="price-gas">Gas Price</label>
+                    <input type="number" class="config-input" id="price-gas" step="0.001" min="0" placeholder="0.850">
+                    <div class="config-help">Price per m³ in EUR</div>
+                </div>
+            </div>
+
+            <!-- Refresh Rates Section -->
+            <div class="config-section">
+                <div class="config-section-title">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh Intervals
+                </div>
+                <div class="config-form-group">
+                    <label class="config-label" for="refresh-live">Live Data Refresh</label>
+                    <input type="number" class="config-input" id="refresh-live" min="5" max="300" placeholder="30">
+                    <div class="config-help">Seconds between live data updates (5-300 seconds)</div>
+                </div>
+                <div class="config-form-group">
+                    <label class="config-label" for="refresh-historical">Historical Data Refresh</label>
+                    <input type="number" class="config-input" id="refresh-historical" min="60" max="3600" placeholder="300">
+                    <div class="config-help">Seconds between historical data updates (60-3600 seconds)</div>
+                </div>
+            </div>
+
+            <!-- Save/Reset Buttons -->
+            <div class="config-section">
+                <button class="config-save" onclick="saveConfiguration()">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+                <button class="config-reset" onclick="resetConfiguration()">
+                    <i class="fas fa-undo"></i> Reset to Defaults
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Energy Dashboard for DSMR Logger - Standalone Version
+        console.log('Energy Dashboard initializing...');
+
+        // Default configuration
+        const DEFAULT_CONFIG = {
+            API_BASE: '/api/v2', // Direct API calls, no proxy needed
+            LIVE_UPDATE_INTERVAL: 30000, // 30 seconds for live data
+            HISTORICAL_UPDATE_INTERVAL: 300000, // 5 minutes for historical data
+            ENERGY_PRICES: {
+                electricity_low: 0.23, // €/kWh (tariff 1)
+                electricity_high: 0.25, // €/kWh (tariff 2)
+                gas: 0.85 // €/m³
+            }
+        };
+
+        // Load configuration from localStorage or use defaults
+        let CONFIG = loadConfiguration();
+
+        // Global state
+        let state = {
+            currentData: {},
+            charts: {
+                gauges: {},
+                historical: null
+            },
+            intervals: {
+                live: null,
+                historical: null
+            },
+            lastHistoricalUpdate: 0
+        };
+
+        // Configuration management functions
+        function loadConfiguration() {
+            try {
+                const saved = localStorage.getItem('energy-dashboard-config');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    return {
+                        ...DEFAULT_CONFIG,
+                        ...parsed,
+                        ENERGY_PRICES: {
+                            ...DEFAULT_CONFIG.ENERGY_PRICES,
+                            ...(parsed.ENERGY_PRICES || {})
+                        }
+                    };
+                }
+            } catch (error) {
+                console.warn('Failed to load configuration:', error);
+            }
+            return { ...DEFAULT_CONFIG };
+        }
+
+        function saveConfiguration() {
+            try {
+                // Get values from form
+                const electricityLow = parseFloat(document.getElementById('price-electricity-low').value);
+                const electricityHigh = parseFloat(document.getElementById('price-electricity-high').value);
+                const gasPrice = parseFloat(document.getElementById('price-gas').value);
+                const liveRefresh = parseInt(document.getElementById('refresh-live').value);
+                const historicalRefresh = parseInt(document.getElementById('refresh-historical').value);
+
+                // Validate inputs
+                if (isNaN(electricityLow) || electricityLow < 0) {
+                    alert('Please enter a valid electricity low tariff price');
+                    return;
+                }
+                if (isNaN(electricityHigh) || electricityHigh < 0) {
+                    alert('Please enter a valid electricity high tariff price');
+                    return;
+                }
+                if (isNaN(gasPrice) || gasPrice < 0) {
+                    alert('Please enter a valid gas price');
+                    return;
+                }
+                if (isNaN(liveRefresh) || liveRefresh < 5 || liveRefresh > 300) {
+                    alert('Live refresh interval must be between 5 and 300 seconds');
+                    return;
+                }
+                if (isNaN(historicalRefresh) || historicalRefresh < 60 || historicalRefresh > 3600) {
+                    alert('Historical refresh interval must be between 60 and 3600 seconds');
+                    return;
+                }
+
+                // Update configuration
+                CONFIG.ENERGY_PRICES.electricity_low = electricityLow;
+                CONFIG.ENERGY_PRICES.electricity_high = electricityHigh;
+                CONFIG.ENERGY_PRICES.gas = gasPrice;
+                CONFIG.LIVE_UPDATE_INTERVAL = liveRefresh * 1000; // Convert to milliseconds
+                CONFIG.HISTORICAL_UPDATE_INTERVAL = historicalRefresh * 1000;
+
+                // Save to localStorage
+                localStorage.setItem('energy-dashboard-config', JSON.stringify(CONFIG));
+
+                // Restart intervals with new settings
+                restartUpdateIntervals();
+
+                // Close panel and show success
+                closeConfigPanel();
+                
+                // Temporarily update connection status to show success
+                updateConnectionStatus('connected', 'Settings saved successfully');
+                setTimeout(() => {
+                    updateConnectionStatus('connected', 'Connected to DSMR Logger');
+                }, 3000);
+
+                console.log('Configuration saved:', CONFIG);
+            } catch (error) {
+                console.error('Error saving configuration:', error);
+                alert('Failed to save configuration: ' + error.message);
+            }
+        }
+
+        function resetConfiguration() {
+            if (confirm('Reset all settings to default values?')) {
+                CONFIG = { ...DEFAULT_CONFIG };
+                localStorage.removeItem('energy-dashboard-config');
+                loadConfigurationIntoForm();
+                restartUpdateIntervals();
+                
+                // Show success message
+                updateConnectionStatus('connected', 'Settings reset to defaults');
+                setTimeout(() => {
+                    updateConnectionStatus('connected', 'Connected to DSMR Logger');
+                }, 3000);
+            }
+        }
+
+        function loadConfigurationIntoForm() {
+            document.getElementById('price-electricity-low').value = CONFIG.ENERGY_PRICES.electricity_low.toFixed(3);
+            document.getElementById('price-electricity-high').value = CONFIG.ENERGY_PRICES.electricity_high.toFixed(3);
+            document.getElementById('price-gas').value = CONFIG.ENERGY_PRICES.gas.toFixed(3);
+            document.getElementById('refresh-live').value = Math.round(CONFIG.LIVE_UPDATE_INTERVAL / 1000);
+            document.getElementById('refresh-historical').value = Math.round(CONFIG.HISTORICAL_UPDATE_INTERVAL / 1000);
+        }
+
+        // Configuration panel functions
+        function openConfigPanel() {
+            const panel = document.getElementById('config-panel');
+            const overlay = document.getElementById('config-overlay');
+            
+            // Load current values into form
+            loadConfigurationIntoForm();
+            
+            // Show panel
+            panel.classList.add('open');
+            overlay.classList.add('open');
+        }
+
+        function closeConfigPanel() {
+            const panel = document.getElementById('config-panel');
+            const overlay = document.getElementById('config-overlay');
+            
+            panel.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+
+        // Interval management
+        function restartUpdateIntervals() {
+            // Clear existing intervals
+            if (state.intervals.live) {
+                clearInterval(state.intervals.live);
+            }
+            if (state.intervals.historical) {
+                clearInterval(state.intervals.historical);
+            }
+
+            // Start new intervals
+            state.intervals.live = setInterval(updateLiveData, CONFIG.LIVE_UPDATE_INTERVAL);
+            state.intervals.historical = setInterval(updateHistoricalDataIfNeeded, CONFIG.HISTORICAL_UPDATE_INTERVAL);
+
+            console.log('Update intervals restarted:', {
+                live: CONFIG.LIVE_UPDATE_INTERVAL + 'ms',
+                historical: CONFIG.HISTORICAL_UPDATE_INTERVAL + 'ms'
+            });
+        }
+
+        async function updateLiveData() {
+            try {
+                await fetchCurrentData();
+                updateCurrentPowerDisplay();
+                updateGasUsage();
+                updateCostEstimate();
+                updatePhaseDisplays();
+            } catch (error) {
+                console.error('Error updating live data:', error);
+            }
+        }
+
+        async function updateHistoricalDataIfNeeded() {
+            try {
+                await updateEnergyToday();
+                await updateMonthlyData();
+                updateHistoricalData();
+                state.lastHistoricalUpdate = Date.now();
+            } catch (error) {
+                console.error('Error updating historical data:', error);
+            }
+        }
+
+        async function updateMonthlyData() {
+            try {
+                // Fetch daily historical data for monthly calculations
+                const daysData = await fetchAPI('/hist/days');
+                
+                if (!daysData || !daysData.days || daysData.days.length === 0) {
+                    console.warn('No daily data available for monthly calculations');
+                    return;
+                }
+
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth() + 1; // 1-12
+                const currentDate = now.getDate();
+                
+                // Format current month prefix (YYMM)
+                const currentMonthPrefix = currentYear.toString().slice(-2) + 
+                                         String(currentMonth).padStart(2, '0');
+                
+                // Format previous month
+                const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+                const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+                const prevMonthPrefix = prevYear.toString().slice(-2) + 
+                                       String(prevMonth).padStart(2, '0');
+
+                // Sort days by recid for easier processing
+                const sortedDays = daysData.days.sort((a, b) => a.recid.localeCompare(b.recid));
+                
+                // Find current month data
+                const currentMonthDays = sortedDays.filter(day => 
+                    day.recid.startsWith(currentMonthPrefix)
+                );
+                
+                // Find previous month data  
+                const prevMonthDays = sortedDays.filter(day => 
+                    day.recid.startsWith(prevMonthPrefix)
+                );
+
+                console.log('Monthly data processing:', {
+                    currentMonthPrefix,
+                    prevMonthPrefix,
+                    currentMonthDays: currentMonthDays.length,
+                    prevMonthDays: prevMonthDays.length
+                });
+
+                if (currentMonthDays.length === 0) {
+                    console.warn('No current month data found');
+                    return;
+                }
+
+                // Calculate month-to-date consumption
+                const firstDayOfMonth = currentMonthDays[0];
+                const latestDayOfMonth = currentMonthDays[currentMonthDays.length - 1];
+                
+                // Get current readings
+                const currentT1 = state.currentData.energy_delivered_tariff1?.value || 0;
+                const currentT2 = state.currentData.energy_delivered_tariff2?.value || 0;
+                const currentGas = state.currentData.gas_delivered?.value || 0;
+
+                // Calculate from start of month to current
+                const monthEnergyT1 = currentT1 - (firstDayOfMonth.edt1 || 0);
+                const monthEnergyT2 = currentT2 - (firstDayOfMonth.edt2 || 0);
+                const monthEnergy = monthEnergyT1 + monthEnergyT2;
+                const monthGas = currentGas - (firstDayOfMonth.gdt || 0);
+
+                console.log('Current month calculation:', {
+                    firstDay: firstDayOfMonth.recid,
+                    latestDay: latestDayOfMonth.recid,
+                    monthEnergy,
+                    monthGas
+                });
+
+                // Calculate previous month same-date comparison
+                let prevMonthSameDate = null;
+                let prevMonthEnergy = 0;
+                let prevMonthGas = 0;
+                
+                if (prevMonthDays.length > 0) {
+                    // Find the same date last month
+                    const sameDateLastMonth = prevYear.toString().slice(-2) + 
+                                            String(prevMonth).padStart(2, '0') + 
+                                            String(Math.min(currentDate, 28)).padStart(2, '0'); // Cap at 28 to avoid month length issues
+                    
+                    prevMonthSameDate = prevMonthDays.find(day => 
+                        day.recid.startsWith(sameDateLastMonth)
+                    );
+
+                    if (prevMonthSameDate && prevMonthDays[0]) {
+                        const firstDayPrevMonth = prevMonthDays[0];
+                        prevMonthEnergy = (prevMonthSameDate.edt1 + prevMonthSameDate.edt2) - 
+                                        (firstDayPrevMonth.edt1 + firstDayPrevMonth.edt2);
+                        prevMonthGas = (prevMonthSameDate.gdt || 0) - (firstDayPrevMonth.gdt || 0);
+                        
+                        console.log('Previous month same-date calculation:', {
+                            sameDateLastMonth,
+                            prevMonthSameDate: prevMonthSameDate.recid,
+                            firstDayPrevMonth: firstDayPrevMonth.recid,
+                            prevMonthEnergy,
+                            prevMonthGas
+                        });
+                    }
+                }
+
+                // Store monthly data
+                state.monthlyConsumption = {
+                    energy: monthEnergy,
+                    gas: monthGas,
+                    prevMonthEnergy: prevMonthEnergy,
+                    prevMonthGas: prevMonthGas,
+                    currentDate: currentDate,
+                    daysInMonth: currentDate // Days elapsed in current month
+                };
+
+                // Update UI
+                updateMonthlyDisplays();
+
+            } catch (error) {
+                console.error('Error calculating monthly data:', error);
+            }
+        }
+
+        function updateMonthlyDisplays() {
+            if (!state.monthlyConsumption) return;
+
+            const monthEnergyEl = document.getElementById('month-energy');
+            const monthTrendEl = document.getElementById('month-trend');
+            const monthGasEl = document.getElementById('month-gas');
+            const monthGasTrendEl = document.getElementById('month-gas-trend');
+
+            // Update month-to-date energy
+            if (monthEnergyEl) {
+                monthEnergyEl.innerHTML = `${formatNumber(state.monthlyConsumption.energy)} <span class="metric-unit">kWh</span>`;
+            }
+
+            // Update energy trend
+            if (monthTrendEl) {
+                const monthEnergy = state.monthlyConsumption.energy;
+                const prevMonthEnergy = state.monthlyConsumption.prevMonthEnergy;
+                
+                if (prevMonthEnergy > 0) {
+                    const percentChange = ((monthEnergy - prevMonthEnergy) / prevMonthEnergy) * 100;
+                    const changeText = Math.abs(percentChange).toFixed(1);
+                    
+                    if (percentChange > 5) {
+                        monthTrendEl.innerHTML = `<i class="fas fa-arrow-up"></i> <span>+${changeText}% vs last month same date</span>`;
+                        monthTrendEl.className = 'metric-trend trend-up';
+                    } else if (percentChange < -5) {
+                        monthTrendEl.innerHTML = `<i class="fas fa-arrow-down"></i> <span>-${changeText}% vs last month same date</span>`;
+                        monthTrendEl.className = 'metric-trend trend-down';
+                    } else {
+                        monthTrendEl.innerHTML = '<i class="fas fa-minus"></i> <span>Similar to last month</span>';
+                        monthTrendEl.className = 'metric-trend trend-neutral';
+                    }
+                } else {
+                    monthTrendEl.innerHTML = `<i class="fas fa-calendar"></i> <span>Day ${state.monthlyConsumption.daysInMonth} of month</span>`;
+                    monthTrendEl.className = 'metric-trend trend-neutral';
+                }
+            }
+
+            // Update month-to-date gas
+            if (monthGasEl) {
+                monthGasEl.innerHTML = `${formatNumber(state.monthlyConsumption.gas)} <span class="metric-unit">m³</span>`;
+            }
+
+            // Update gas trend
+            if (monthGasTrendEl) {
+                const monthGas = state.monthlyConsumption.gas;
+                const prevMonthGas = state.monthlyConsumption.prevMonthGas;
+                
+                if (prevMonthGas > 0) {
+                    const percentChange = ((monthGas - prevMonthGas) / prevMonthGas) * 100;
+                    const changeText = Math.abs(percentChange).toFixed(1);
+                    
+                    if (percentChange > 10) {
+                        monthGasTrendEl.innerHTML = `<i class="fas fa-arrow-up"></i> <span>+${changeText}% vs last month</span>`;
+                        monthGasTrendEl.className = 'metric-trend trend-up';
+                    } else if (percentChange < -10) {
+                        monthGasTrendEl.innerHTML = `<i class="fas fa-arrow-down"></i> <span>-${changeText}% vs last month</span>`;
+                        monthGasTrendEl.className = 'metric-trend trend-down';
+                    } else {
+                        monthGasTrendEl.innerHTML = '<i class="fas fa-minus"></i> <span>Similar to last month</span>';
+                        monthGasTrendEl.className = 'metric-trend trend-neutral';
+                    }
+                } else {
+                    monthGasTrendEl.innerHTML = `<i class="fas fa-calendar"></i> <span>Month-to-date consumption</span>`;
+                    monthGasTrendEl.className = 'metric-trend trend-neutral';
+                }
+            }
+        }
+
+        // Utility functions
+        function formatNumber(value, decimals = 3) {
+            if (typeof value !== 'number' || isNaN(value)) return '0.000';
+            return Number(value).toFixed(decimals);
+        }
+
+        function formatCurrency(value) {
+            if (typeof value !== 'number' || isNaN(value)) return '€0.00';
+            return new Intl.NumberFormat('nl-NL', { 
+                style: 'currency', 
+                currency: 'EUR' 
+            }).format(value);
+        }
+
+        // Connection status management
+        function updateConnectionStatus(status, message) {
+            const statusEl = document.getElementById('connection-status');
+            if (!statusEl) return;
+            
+            statusEl.className = `status-indicator status-${status}`;
+            statusEl.innerHTML = `<i class="fas fa-circle"></i> ${message}`;
+        }
+
+        // API functions
+        async function fetchAPI(endpoint) {
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}${endpoint}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`API Error (${endpoint}):`, error);
+                throw error;
+            }
+        }
+
+        async function fetchCurrentData() {
+            try {
+                updateConnectionStatus('connecting', 'Fetching current data...');
+                
+                // Fetch current actual data from v2 API
+                const actualData = await fetchAPI('/sm/actual');
+                
+                // Parse the flat object format
+                const parsed = {};
+                
+                if (actualData && actualData.actual && typeof actualData.actual === 'object') {
+                    // The API returns a flat object with field names as keys
+                    Object.entries(actualData.actual).forEach(([key, value]) => {
+                        if (typeof value === 'number' || !isNaN(Number(value))) {
+                            parsed[key] = {
+                                value: Number(value),
+                                unit: getFieldUnit(key)
+                            };
+                        }
+                    });
+                }
+                
+                state.currentData = parsed;
+                updateConnectionStatus('connected', 'Connected to DSMR Logger');
+                return state.currentData;
+                
+            } catch (error) {
+                console.error('Error fetching current data:', error);
+                updateConnectionStatus('error', 'Connection failed');
+                throw error;
+            }
+        }
+
+        function getFieldUnit(fieldName) {
+            if (fieldName.includes('power_')) return 'kW';
+            if (fieldName.includes('voltage_')) return 'V';
+            if (fieldName.includes('current_')) return 'A';
+            if (fieldName.includes('energy_')) return 'kWh';
+            if (fieldName.includes('gas_')) return 'm³';
+            return '';
+        }
+
+        // UI Update functions
+        function updateCurrentPowerDisplay() {
+            const data = state.currentData;
+            
+            // Use the total power from the API response directly
+            const totalDelivered = data.power_delivered?.value || 0;
+            const totalReturned = data.power_returned?.value || 0;
+            
+            const netPower = totalDelivered - totalReturned;
+            
+            const powerEl = document.getElementById('current-power');
+            const trendEl = document.getElementById('power-trend');
+            
+            if (powerEl) {
+                const color = netPower >= 0 ? 'var(--danger-color)' : 'var(--success-color)';
+                powerEl.innerHTML = `<span style="color: ${color};">${formatNumber(Math.abs(netPower))}</span> <span class="metric-unit">kW</span>`;
+            }
+            
+            if (trendEl) {
+                if (netPower > 0.005) {
+                    trendEl.innerHTML = '<i class="fas fa-arrow-up"></i> <span>Consuming from grid</span>';
+                    trendEl.className = 'metric-trend trend-up';
+                } else if (netPower < -0.005) {
+                    trendEl.innerHTML = '<i class="fas fa-arrow-down"></i> <span>Returning to grid</span>';
+                    trendEl.className = 'metric-trend trend-down';
+                } else {
+                    trendEl.innerHTML = '<i class="fas fa-minus"></i> <span>Balanced</span>';
+                    trendEl.className = 'metric-trend trend-neutral';
+                }
+            }
+        }
+
+        async function updateEnergyToday() {
+            try {
+                // Fetch both daily and hourly data for comprehensive comparisons
+                const [daysData, hoursData] = await Promise.all([
+                    fetchAPI('/hist/days'),
+                    fetchAPI('/hist/hours')
+                ]);
+                
+                if (daysData && daysData.days && daysData.days.length >= 3) {
+                    // Get today's date in the format used by the API (YYMMDD)
+                    const now = new Date();
+                    const todayPrefix = now.getFullYear().toString().slice(-2) + 
+                                      String(now.getMonth() + 1).padStart(2, '0') + 
+                                      String(now.getDate()).padStart(2, '0');
+                    const yesterday = new Date(now);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayPrefix = yesterday.getFullYear().toString().slice(-2) + 
+                                          String(yesterday.getMonth() + 1).padStart(2, '0') + 
+                                          String(yesterday.getDate()).padStart(2, '0');
+                    
+                    // Find the most recent readings for today and yesterday
+                    // Sort by recid to get chronological order
+                    const sortedDays = daysData.days.sort((a, b) => b.recid.localeCompare(a.recid));
+                    
+                    const todayRecord = sortedDays.find(day => day.recid.startsWith(todayPrefix));
+                    const yesterdayRecord = sortedDays.find(day => day.recid.startsWith(yesterdayPrefix));
+                    
+                    console.log('Date calculation:', {
+                        todayPrefix,
+                        yesterdayPrefix,
+                        todayRecord,
+                        yesterdayRecord
+                    });
+                    
+                    // Get current actual readings
+                    const currentT1 = state.currentData.energy_delivered_tariff1?.value || 0;
+                    const currentT2 = state.currentData.energy_delivered_tariff2?.value || 0;
+                    const currentGas = state.currentData.gas_delivered?.value || 0;
+                    
+                    let dailyEnergyT1, dailyEnergyT2, dailyEnergy, dailyGas;
+                    let yesterdayEnergy = 0, yesterdayGas = 0;
+                    
+                    if (!yesterdayRecord) {
+                        console.warn('No yesterday record found for baseline calculation');
+                        // Fallback to using consecutive sorted days
+                        const today = sortedDays[0];
+                        const yesterday = sortedDays[1];
+                        const dayBeforeYesterday = sortedDays[2];
+                        
+                        // Calculate today's consumption so far (current - latest historical)
+                        dailyEnergyT1 = currentT1 - (today.edt1 || 0);
+                        dailyEnergyT2 = currentT2 - (today.edt2 || 0);
+                        dailyEnergy = dailyEnergyT1 + dailyEnergyT2;
+                        dailyGas = currentGas - (today.gdt || 0);
+                        
+                        // Calculate yesterday's consumption for comparison
+                        const yesterdayEnergyT1 = (today.edt1 || 0) - (yesterday.edt1 || 0);
+                        const yesterdayEnergyT2 = (today.edt2 || 0) - (yesterday.edt2 || 0);
+                        yesterdayEnergy = yesterdayEnergyT1 + yesterdayEnergyT2;
+                        yesterdayGas = (today.gdt || 0) - (yesterday.gdt || 0);
+                    } else {
+                        // Use proper date-based calculation
+                        // Calculate today's consumption from yesterday's end to current
+                        dailyEnergyT1 = currentT1 - (yesterdayRecord.edt1 || 0);
+                        dailyEnergyT2 = currentT2 - (yesterdayRecord.edt2 || 0);
+                        dailyEnergy = dailyEnergyT1 + dailyEnergyT2;
+                        dailyGas = currentGas - (yesterdayRecord.gdt || 0);
+                        
+                        // Calculate yesterday's full consumption for comparison
+                        // Find the day before yesterday to calculate yesterday's consumption
+                        const dayBeforeYesterday = new Date(yesterday);
+                        dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 1);
+                        const dayBeforePrefix = dayBeforeYesterday.getFullYear().toString().slice(-2) + 
+                                              String(dayBeforeYesterday.getMonth() + 1).padStart(2, '0') + 
+                                              String(dayBeforeYesterday.getDate()).padStart(2, '0');
+                        
+                        const dayBeforeRecord = sortedDays.find(day => day.recid.startsWith(dayBeforePrefix));
+                        
+                        if (dayBeforeRecord) {
+                            const yesterdayEnergyT1 = (yesterdayRecord.edt1 || 0) - (dayBeforeRecord.edt1 || 0);
+                            const yesterdayEnergyT2 = (yesterdayRecord.edt2 || 0) - (dayBeforeRecord.edt2 || 0);
+                            yesterdayEnergy = yesterdayEnergyT1 + yesterdayEnergyT2;
+                            yesterdayGas = (yesterdayRecord.gdt || 0) - (dayBeforeRecord.gdt || 0);
+                        }
+                    }
+                    
+                    console.log('Final calculation:', {
+                        currentT1, currentT2, currentGas,
+                        dailyEnergy, yesterdayEnergy,
+                        dailyGas, yesterdayGas,
+                        todayRecord, yesterdayRecord
+                    });
+                    
+                    // Calculate same-time comparison using hourly data
+                    let sameTimeComparison = null;
+                    if (hoursData && hoursData.hours && hoursData.hours.length > 0) {
+                        sameTimeComparison = calculateSameTimeComparison(hoursData.hours, dailyEnergy);
+                    }
+                    
+                    // Calculate 7-day average if we have enough data
+                    let weeklyAverage = 0;
+                    if (sortedDays.length >= 8) {
+                        let weeklyTotal = 0;
+                        for (let i = 1; i < 8; i++) {
+                            const dayConsumption = (sortedDays[i-1].edt1 + sortedDays[i-1].edt2) - 
+                                                   (sortedDays[i].edt1 + sortedDays[i].edt2);
+                            weeklyTotal += dayConsumption;
+                        }
+                        weeklyAverage = weeklyTotal / 7;
+                    }
+                    
+                    // Store for cost calculation and comparisons
+                    state.dailyConsumption = {
+                        energyT1: dailyEnergyT1,
+                        energyT2: dailyEnergyT2,
+                        energy: dailyEnergy,
+                        gas: dailyGas,
+                        yesterdayEnergy: yesterdayEnergy,
+                        yesterdayGas: yesterdayGas,
+                        weeklyAverage: weeklyAverage,
+                        sameTimeComparison: sameTimeComparison,
+                        recentDays: sortedDays.slice(0, 7) // Store last 7 days for charts
+                    };
+                    
+                    const energyEl = document.getElementById('energy-today');
+                    if (energyEl) {
+                        energyEl.innerHTML = `${formatNumber(dailyEnergy)} <span class="metric-unit">kWh</span>`;
+                    }
+                    
+                    // Show both comparisons in the trend element
+                    const trendEl = document.getElementById('energy-today-trend');
+                    if (trendEl) {
+                        let trendHtml = '';
+                        let trendClass = 'metric-trend trend-neutral';
+                        
+                        // Primary comparison (partial vs full day)
+                        if (yesterdayEnergy > 0) {
+                            const percentChange = ((dailyEnergy - yesterdayEnergy) / yesterdayEnergy) * 100;
+                            const changeText = Math.abs(percentChange).toFixed(1);
+                            
+                            if (percentChange > 5) {
+                                trendHtml = `<i class="fas fa-arrow-up"></i> <span>+${changeText}% vs yesterday (full day)</span>`;
+                                trendClass = 'metric-trend trend-up';
+                            } else if (percentChange < -5) {
+                                trendHtml = `<i class="fas fa-arrow-down"></i> <span>-${changeText}% vs yesterday (full day)</span>`;
+                                trendClass = 'metric-trend trend-down';
+                            } else {
+                                trendHtml = '<i class="fas fa-minus"></i> <span>Similar to yesterday (full day)</span>';
+                                trendClass = 'metric-trend trend-neutral';
+                            }
+                        }
+                        
+                        // Add same-time comparison if available
+                        if (sameTimeComparison) {
+                            const sameTimePercent = sameTimeComparison.percentChange;
+                            const sameTimeText = Math.abs(sameTimePercent).toFixed(1);
+                            let sameTimeIcon = 'fas fa-minus';
+                            
+                            if (sameTimePercent > 5) {
+                                sameTimeIcon = 'fas fa-arrow-up';
+                            } else if (sameTimePercent < -5) {
+                                sameTimeIcon = 'fas fa-arrow-down';
+                            }
+                            
+                            trendHtml += `<br><i class="${sameTimeIcon}"></i> <span style="font-size: 0.8em; opacity: 0.8;">Same-time: ${sameTimePercent > 0 ? '+' : ''}${sameTimeText}% vs yesterday</span>`;
+                        }
+                        
+                        trendEl.innerHTML = trendHtml || '<i class="fas fa-calendar-day"></i> <span>Today\'s consumption</span>';
+                        trendEl.className = trendClass;
+                    }
+                } else {
+                    // Fallback to showing current meter readings if historical data unavailable
+                    const data = state.currentData;
+                    const energyT1 = data.energy_delivered_tariff1?.value || 0;
+                    const energyT2 = data.energy_delivered_tariff2?.value || 0;
+                    const totalEnergy = energyT1 + energyT2;
+                    
+                    const energyEl = document.getElementById('energy-today');
+                    if (energyEl) {
+                        energyEl.innerHTML = `${formatNumber(totalEnergy)} <span class="metric-unit">kWh</span>`;
+                    }
+                    
+                    const trendEl = document.getElementById('energy-today-trend');
+                    if (trendEl) {
+                        trendEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span>Cumulative total</span>';
+                        trendEl.className = 'metric-trend trend-neutral';
+                    }
+                    
+                    // Store fallback data
+                    state.dailyConsumption = {
+                        energyT1: 0,
+                        energyT2: 0,
+                        energy: 0,
+                        gas: 0,
+                        yesterdayEnergy: 0,
+                        yesterdayGas: 0,
+                        weeklyAverage: 0,
+                        sameTimeComparison: null
+                    };
+                }
+            } catch (error) {
+                console.error('Error calculating daily energy:', error);
+                updateConnectionStatus('error', 'Historical data unavailable');
+            }
+        }
+
+        function calculateSameTimeComparison(hoursData, currentDailyTotal) {
+            try {
+                // Sort hours by recid (date + hour)
+                const sortedHours = hoursData.sort((a, b) => b.recid.localeCompare(a.recid));
+                
+                // Get current date and hour
+                const now = new Date();
+                const currentHour = now.getHours();
+                const todayStr = now.getFullYear().toString().slice(-2) + 
+                               String(now.getMonth() + 1).padStart(2, '0') + 
+                               String(now.getDate()).padStart(2, '0');
+                
+                // Find today's data up to current hour
+                const todayHours = sortedHours.filter(h => h.recid.startsWith(todayStr));
+                
+                // Find yesterday's data for the same time period
+                const yesterday = new Date(now);
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.getFullYear().toString().slice(-2) + 
+                                   String(yesterday.getMonth() + 1).padStart(2, '0') + 
+                                   String(yesterday.getDate()).padStart(2, '0');
+                
+                const yesterdayHours = sortedHours.filter(h => h.recid.startsWith(yesterdayStr));
+                
+                if (todayHours.length === 0 || yesterdayHours.length === 0) {
+                    return null;
+                }
+                
+                // Get the earliest hour of today to calculate consumption so far
+                const todayStart = todayHours[todayHours.length - 1]; // Earliest hour
+                const todayLatest = todayHours[0]; // Latest hour
+                
+                // Same for yesterday - get consumption up to same hour
+                const sameHourYesterday = yesterdayHours.find(h => 
+                    parseInt(h.recid.slice(-2)) <= currentHour
+                );
+                const yesterdayStart = yesterdayHours[yesterdayHours.length - 1];
+                
+                if (!todayStart || !todayLatest || !sameHourYesterday || !yesterdayStart) {
+                    return null;
+                }
+                
+                // Calculate consumption from start of day to current hour
+                const todaySoFar = (todayLatest.edt1 + todayLatest.edt2) - (todayStart.edt1 + todayStart.edt2);
+                const yesterdaySameTime = (sameHourYesterday.edt1 + sameHourYesterday.edt2) - (yesterdayStart.edt1 + yesterdayStart.edt2);
+                
+                if (yesterdaySameTime <= 0) {
+                    return null;
+                }
+                
+                const percentChange = ((todaySoFar - yesterdaySameTime) / yesterdaySameTime) * 100;
+                
+                return {
+                    todaySoFar: todaySoFar,
+                    yesterdaySameTime: yesterdaySameTime,
+                    percentChange: percentChange
+                };
+                
+            } catch (error) {
+                console.error('Error calculating same-time comparison:', error);
+                return null;
+            }
+        }
+
+        function updateGasUsage() {
+            // Use daily consumption data if available
+            if (state.dailyConsumption && state.dailyConsumption.gas !== undefined) {
+                const dailyGas = state.dailyConsumption.gas;
+                const yesterdayGas = state.dailyConsumption.yesterdayGas || 0;
+                
+                const gasEl = document.getElementById('gas-total');
+                if (gasEl) {
+                    gasEl.innerHTML = `${formatNumber(dailyGas)} <span class="metric-unit">m³</span>`;
+                }
+                
+                // Show comparison with yesterday
+                const trendEl = document.getElementById('gas-trend');
+                if (trendEl && yesterdayGas > 0) {
+                    const gasChange = dailyGas - yesterdayGas;
+                    const percentChange = (gasChange / yesterdayGas) * 100;
+                    const changeText = Math.abs(percentChange).toFixed(1);
+                    
+                    if (percentChange > 10) {
+                        trendEl.innerHTML = `<i class="fas fa-arrow-up"></i> <span>+${changeText}% vs yesterday</span>`;
+                        trendEl.className = 'metric-trend trend-up';
+                    } else if (percentChange < -10) {
+                        trendEl.innerHTML = `<i class="fas fa-arrow-down"></i> <span>-${changeText}% vs yesterday</span>`;
+                        trendEl.className = 'metric-trend trend-down';
+                    } else {
+                        trendEl.innerHTML = '<i class="fas fa-minus"></i> <span>Similar to yesterday</span>';
+                        trendEl.className = 'metric-trend trend-neutral';
+                    }
+                } else {
+                    trendEl.innerHTML = '<i class="fas fa-calendar-day"></i> <span>Today\'s usage</span>';
+                    trendEl.className = 'metric-trend trend-neutral';
+                }
+            } else {
+                // Fallback to cumulative total
+                const data = state.currentData;
+                const gasDelivered = data.gas_delivered?.value || 0;
+                
+                const gasEl = document.getElementById('gas-total');
+                if (gasEl) {
+                    gasEl.innerHTML = `${formatNumber(gasDelivered)} <span class="metric-unit">m³</span>`;
+                }
+                
+                const trendEl = document.getElementById('gas-trend');
+                if (trendEl) {
+                    trendEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span>Cumulative total</span>';
+                    trendEl.className = 'metric-trend trend-neutral';
+                }
+            }
+        }
+
+        function updateCostEstimate() {
+            // Use daily consumption data if available
+            if (state.dailyConsumption && state.dailyConsumption.energy !== undefined) {
+                // Calculate daily electricity cost using proper tariff distribution
+                const dailyEnergyT1 = state.dailyConsumption.energyT1 || 0;
+                const dailyEnergyT2 = state.dailyConsumption.energyT2 || 0;
+                const electricityCost = (dailyEnergyT1 * CONFIG.ENERGY_PRICES.electricity_low) + 
+                                       (dailyEnergyT2 * CONFIG.ENERGY_PRICES.electricity_high);
+                
+                // Calculate daily gas cost
+                const dailyGas = state.dailyConsumption.gas || 0;
+                const gasCost = dailyGas * CONFIG.ENERGY_PRICES.gas;
+                
+                const totalCost = electricityCost + gasCost;
+                
+                const costEl = document.getElementById('cost-today');
+                if (costEl) {
+                    costEl.innerHTML = `${formatCurrency(totalCost)} <span class="metric-unit">est.</span>`;
+                }
+                
+                const trendEl = document.getElementById('cost-trend');
+                if (trendEl) {
+                    trendEl.innerHTML = '<i class="fas fa-calendar-day"></i> <span>Today\'s estimated cost</span>';
+                    trendEl.className = 'metric-trend trend-neutral';
+                }
+            } else {
+                // Fallback to cumulative totals (will be very high!)
+                const data = state.currentData;
+                
+                const energyT1 = data.energy_delivered_tariff1?.value || 0;
+                const energyT2 = data.energy_delivered_tariff2?.value || 0;
+                const electricityCost = (energyT1 * CONFIG.ENERGY_PRICES.electricity_low) + 
+                                       (energyT2 * CONFIG.ENERGY_PRICES.electricity_high);
+                
+                const gasDelivered = data.gas_delivered?.value || 0;
+                const gasCost = gasDelivered * CONFIG.ENERGY_PRICES.gas;
+                
+                const totalCost = electricityCost + gasCost;
+                
+                const costEl = document.getElementById('cost-today');
+                if (costEl) {
+                    costEl.innerHTML = `${formatCurrency(totalCost)} <span class="metric-unit">total</span>`;
+                }
+                
+                const trendEl = document.getElementById('cost-trend');
+                if (trendEl) {
+                    trendEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span>Cumulative cost</span>';
+                    trendEl.className = 'metric-trend trend-neutral';
+                }
+            }
+        }
+
+        function updatePhaseDisplays() {
+            const data = state.currentData;
+            
+            for (let phase = 1; phase <= 3; phase++) {
+                // Update voltage and current displays
+                const voltage = data[`voltage_l${phase}`]?.value || 0;
+                const current = data[`current_l${phase}`]?.value || 0;
+                
+                const voltageEl = document.getElementById(`voltage-l${phase}`);
+                const currentEl = document.getElementById(`current-l${phase}`);
+                
+                if (voltageEl) voltageEl.textContent = Math.round(voltage);
+                if (currentEl) currentEl.textContent = formatNumber(current, 1);
+                
+                // Update phase gauges
+                updatePhaseGauge(phase);
+            }
+        }
+
+        function updatePhaseGauge(phase) {
+            const data = state.currentData;
+            const powerDelivered = data[`power_delivered_l${phase}`]?.value || 0;
+            const powerReturned = data[`power_returned_l${phase}`]?.value || 0;
+            const netPower = powerDelivered - powerReturned;
+            
+            // Convert to Amps (approximate, using 230V)
+            const amps = (netPower * 1000) / 230;
+            
+            const gauge = state.charts.gauges[`l${phase}`];
+            if (gauge && gauge.series && gauge.series[0]) {
+                const point = gauge.series[0].points[0];
+                point.update(Number(amps.toFixed(1)));
+            }
+        }
+
+        // Chart functions
+        function createPhaseGauges() {
+            const gaugeOptions = {
+                chart: {
+                    type: 'gauge',
+                    height: 150,
+                    backgroundColor: 'transparent',
+                    margin: [0, 0, 0, 0]
+                },
+                title: { text: null },
+                tooltip: { enabled: false },
+                credits: { enabled: false },
+                pane: {
+                    startAngle: -90,
+                    endAngle: 90,
+                    center: ['50%', '85%'],
+                    size: '100%'
+                },
+                yAxis: {
+                    min: -25,
+                    max: 25,
+                    minorTickInterval: 5,
+                    minorTickWidth: 1,
+                    minorTickLength: 5,
+                    minorTickPosition: 'inside',
+                    minorTickColor: '#e5e7eb',
+                    tickPixelInterval: 30,
+                    tickWidth: 1,
+                    tickPosition: 'inside',
+                    tickLength: 8,
+                    tickColor: '#6b7280',
+                    labels: {
+                        step: 2,
+                        rotation: 'auto',
+                        style: { fontSize: '9px', color: '#6b7280' }
+                    },
+                    title: { text: null },
+                    plotBands: [{
+                        from: -25, to: -5,
+                        color: 'rgba(16, 185, 129, 0.3)',
+                        innerRadius: '60%',
+                        outerRadius: '100%'
+                    }, {
+                        from: -5, to: 5,
+                        color: 'rgba(245, 158, 11, 0.3)',
+                        innerRadius: '60%',
+                        outerRadius: '100%'
+                    }, {
+                        from: 5, to: 25,
+                        color: 'rgba(239, 68, 68, 0.3)',
+                        innerRadius: '60%',
+                        outerRadius: '100%'
+                    }]
+                },
+                plotOptions: {
+                    gauge: {
+                        dataLabels: {
+                            y: -10,
+                            borderWidth: 0,
+                            useHTML: true,
+                            style: { fontSize: '11px', fontWeight: 'bold' },
+                            format: '<span style="color:#1f2937">{y} A</span>'
+                        },
+                        dial: {
+                            radius: '70%',
+                            backgroundColor: '#6b7280',
+                            borderWidth: 0,
+                            baseWidth: 2,
+                            topWidth: 1,
+                            baseLength: '0%',
+                            rearLength: '10%'
+                        },
+                        pivot: {
+                            backgroundColor: '#6b7280',
+                            radius: 3
+                        }
+                    }
+                },
+                series: [{
+                    name: 'Amps',
+                    data: [0],
+                    tooltip: { valueSuffix: ' A' }
+                }]
+            };
+
+            // Create gauges for each phase
+            for (let phase = 1; phase <= 3; phase++) {
+                try {
+                    state.charts.gauges[`l${phase}`] = Highcharts.chart(`gauge-l${phase}`, gaugeOptions);
+                } catch (error) {
+                    console.error(`Error creating gauge for phase ${phase}:`, error);
+                }
+            }
+        }
+
+        // Historical chart functions
+        function createHistoricalChart(type = 'energy') {
+            const ctx = document.getElementById('historical-chart');
+            if (!ctx) return;
+
+            // Destroy existing chart if it exists
+            if (state.charts.historical) {
+                state.charts.historical.destroy();
+            }
+
+            const chartData = prepareHistoricalData(type);
+            
+            state.charts.historical = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: '#e5e7eb',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: '#f3f4f6'
+                            },
+                            ticks: {
+                                color: '#6b7280'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: '#f3f4f6'
+                            },
+                            ticks: {
+                                color: '#6b7280'
+                            },
+                            title: {
+                                display: true,
+                                text: type === 'energy' ? 'kWh' : 'm³',
+                                color: '#6b7280'
+                            }
+                        }
+                    },
+                    elements: {
+                        line: {
+                            tension: 0.4
+                        },
+                        point: {
+                            radius: 4,
+                            hoverRadius: 6
+                        }
+                    }
+                }
+            });
+        }
+
+        function prepareHistoricalData(type = 'energy') {
+            console.log('Preparing historical data for type:', type);
+            console.log('Available data:', state.dailyConsumption);
+            
+            if (!state.dailyConsumption || !state.dailyConsumption.recentDays) {
+                console.warn('No historical data available');
+                return { labels: [], datasets: [] };
+            }
+
+            const days = state.dailyConsumption.recentDays;
+            console.log('Processing days:', days);
+            
+            const labels = [];
+            const data = [];
+            const backgroundColors = [];
+            const borderColors = [];
+
+            // Define reasonable bounds for daily consumption (more relaxed)
+            const bounds = {
+                energy: { min: 0, max: 200 }, // 0-200 kWh per day (more relaxed)
+                gas: { min: 0, max: 50 }      // 0-50 m³ per day (more relaxed)
+            };
+
+            // Process days in chronological order (reverse of recid sort)
+            const chronologicalDays = [...days].reverse();
+            console.log('Chronological days:', chronologicalDays);
+            
+            for (let i = 1; i < chronologicalDays.length; i++) {
+                const currentDay = chronologicalDays[i];
+                const previousDay = chronologicalDays[i - 1];
+                
+                console.log(`Processing day ${i}: current=${currentDay.recid}, previous=${previousDay.recid}`);
+                
+                // Calculate daily consumption
+                let dailyValue = 0;
+                if (type === 'energy') {
+                    const energyT1 = (currentDay.edt1 || 0) - (previousDay.edt1 || 0);
+                    const energyT2 = (currentDay.edt2 || 0) - (previousDay.edt2 || 0);
+                    dailyValue = energyT1 + energyT2;
+                    console.log(`Energy calculation: T1=${energyT1}, T2=${energyT2}, Total=${dailyValue}`);
+                } else {
+                    dailyValue = (currentDay.gdt || 0) - (previousDay.gdt || 0);
+                    console.log(`Gas calculation: ${dailyValue}`);
+                }
+
+                // Validate and bound the data (more lenient)
+                const currentBounds = bounds[type];
+                if (dailyValue < currentBounds.min || dailyValue > currentBounds.max) {
+                    console.warn(`Outlier detected for ${type}: ${dailyValue}, skipping day ${currentDay.recid}`);
+                    continue; // Skip this data point
+                }
+
+                // Additional validation - reject negative consumption
+                if (dailyValue < 0) {
+                    console.warn(`Negative consumption detected for ${type}: ${dailyValue}, skipping day ${currentDay.recid}`);
+                    continue;
+                }
+
+                // Format date label
+                const dateStr = currentDay.recid;
+                const year = '20' + dateStr.substring(0, 2);
+                const month = dateStr.substring(2, 4);
+                const day = dateStr.substring(4, 6);
+                const date = new Date(year, month - 1, day);
+                
+                const label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                console.log(`Date: ${dateStr} -> ${label}, Value: ${dailyValue}`);
+                
+                labels.push(label);
+                data.push(Number(dailyValue.toFixed(3)));
+                
+                // Color coding based on consumption level (adjusted thresholds)
+                if (type === 'energy') {
+                    if (dailyValue > 40) {
+                        backgroundColors.push('rgba(239, 68, 68, 0.2)');
+                        borderColors.push('rgba(239, 68, 68, 1)');
+                    } else if (dailyValue > 25) {
+                        backgroundColors.push('rgba(245, 158, 11, 0.2)');
+                        borderColors.push('rgba(245, 158, 11, 1)');
+                    } else {
+                        backgroundColors.push('rgba(16, 185, 129, 0.2)');
+                        borderColors.push('rgba(16, 185, 129, 1)');
+                    }
+                } else {
+                    if (dailyValue > 8) {
+                        backgroundColors.push('rgba(239, 68, 68, 0.2)');
+                        borderColors.push('rgba(239, 68, 68, 1)');
+                    } else if (dailyValue > 4) {
+                        backgroundColors.push('rgba(245, 158, 11, 0.2)');
+                        borderColors.push('rgba(245, 158, 11, 1)');
+                    } else {
+                        backgroundColors.push('rgba(16, 185, 129, 0.2)');
+                        borderColors.push('rgba(16, 185, 129, 1)');
+                    }
+                }
+            }
+
+            // If no valid data points, return empty chart
+            if (data.length === 0) {
+                console.warn('No valid data points for historical chart');
+                return { 
+                    labels: ['No Data'], 
+                    datasets: [{ 
+                        label: 'No Valid Data', 
+                        data: [0],
+                        backgroundColor: 'rgba(156, 163, 175, 0.2)',
+                        borderColor: 'rgba(156, 163, 175, 1)'
+                    }] 
+                };
+            }
+
+            console.log('Final chart data:', { labels, data, datasetLength: data.length });
+
+            return {
+                labels: labels,
+                datasets: [{
+                    label: type === 'energy' ? 'Daily Energy (kWh)' : 'Daily Gas (m³)',
+                    data: data,
+                    backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                    borderColor: 'rgba(37, 99, 235, 1)',
+                    pointBackgroundColor: borderColors,
+                    pointBorderColor: borderColors,
+                    fill: true
+                }]
+            };
+        }
+
+        function showHistoricalChart(type = 'energy') {
+            // Update button states
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update chart title
+            const title = document.querySelector('#historical-chart-container .chart-title');
+            if (title) {
+                title.innerHTML = `<i class="fas fa-chart-line"></i> Weekly ${type === 'energy' ? 'Energy' : 'Gas'} Consumption`;
+            }
+
+            // Create or update chart
+            createHistoricalChart(type);
+        }
+
+        function updateHistoricalData() {
+            // Only show historical chart if we have enough data and haven't created it yet
+            if (state.dailyConsumption && state.dailyConsumption.recentDays && state.dailyConsumption.recentDays.length >= 4) {
+                const container = document.getElementById('historical-chart-container');
+                if (container) {
+                    container.style.display = 'block';
+                    
+                    // Create chart only if it doesn't exist yet
+                    if (!state.charts.historical) {
+                        createHistoricalChart('energy');
+                    }
+                }
+            }
+        }
+
+        // Main update function (for initial load)
+        async function updateAllData() {
+            try {
+                await fetchCurrentData();
+                updateCurrentPowerDisplay();
+                await updateEnergyToday();
+                updateGasUsage();
+                updateCostEstimate();
+                updatePhaseDisplays();
+                updateHistoricalData();
+            } catch (error) {
+                console.error('Error updating all data:', error);
+            }
+        }
+
+        // Initialization
+        async function init() {
+            console.log('Initializing Energy Dashboard...');
+            console.log('Configuration loaded:', CONFIG);
+            
+            // Create charts
+            createPhaseGauges();
+            
+            // Initial data load
+            await updateAllData();
+            
+            // Set up separate intervals for live vs historical data
+            restartUpdateIntervals();
+            
+            console.log('Energy Dashboard initialized successfully');
+            console.log('Update intervals:', {
+                live: CONFIG.LIVE_UPDATE_INTERVAL + 'ms', 
+                historical: CONFIG.HISTORICAL_UPDATE_INTERVAL + 'ms'
+            });
+        }
+
+        // Start when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
