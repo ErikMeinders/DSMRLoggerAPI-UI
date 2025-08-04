@@ -4,7 +4,7 @@ A collection of alternative web dashboards for the [DSMRloggerAPI](https://githu
 
 ## 📋 Requirements
 
-This project requires DSMR Logger hardware and firmware as described in the [DSMRloggerWS documentation](https://mrwheel.github.io/DSMRloggerWS/introductie/).
+This project requires DSMR Logger hardware and firmware as described in the [DSMRlogger32 documentation](https://mrwheel-docs.gitbook.io/dsmrlogger32/).
 
 **Supported Hardware:**
 - ESP32 or ESP8266 development board
@@ -140,8 +140,8 @@ make fm-upload         # Upload custom files
 ## 🔗 Related Projects
 
 - **Main Project**: [DSMRloggerAPI](https://github.com/mrWheel/DSMRloggerAPI)
-- **Documentation**: [DSMRloggerWS](https://mrwheel.github.io/DSMRloggerWS/introductie/)
-- **Hardware Setup**: [Introduction Guide](https://mrwheel.github.io/DSMRloggerWS/introductie/)
+- **Documentation**: [DSMRlogger32](https://mrwheel-docs.gitbook.io/dsmrlogger32/)
+- **Hardware Setup**: [DSMRlogger32 Documentation](https://mrwheel-docs.gitbook.io/dsmrlogger32/)
 
 ## 📱 Access Your Dashboards
 
