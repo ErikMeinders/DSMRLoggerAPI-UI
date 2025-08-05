@@ -475,6 +475,54 @@
             </span>
         </div>
 
+        <!-- System Info Panel -->
+        <div class="chart-container" id="system-info-container">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <i class="fas fa-microchip"></i>
+                    System Information
+                </div>
+                <div id="device-status" class="status-indicator status-connecting">
+                    <i class="fas fa-circle"></i>
+                    Loading...
+                </div>
+            </div>
+            <div class="phase-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                <div class="phase-card">
+                    <div class="phase-title">Device Info</div>
+                    <div style="text-align: left; font-size: 0.875rem;">
+                        <div style="margin: 0.25rem 0;"><strong>Hostname:</strong> <span id="device-hostname">-</span></div>
+                        <div style="margin: 0.25rem 0;"><strong>Firmware:</strong> <span id="device-firmware">-</span></div>
+                        <div style="margin: 0.25rem 0;"><strong>Uptime:</strong> <span id="device-uptime">-</span></div>
+                    </div>
+                </div>
+                <div class="phase-card">
+                    <div class="phase-title">Network</div>
+                    <div style="text-align: left; font-size: 0.875rem;">
+                        <div style="margin: 0.25rem 0;"><strong>IP Address:</strong> <span id="device-ip">-</span></div>
+                        <div style="margin: 0.25rem 0;"><strong>WiFi RSSI:</strong> <span id="device-rssi">-</span> dBm</div>
+                        <div style="margin: 0.25rem 0;"><strong>MQTT:</strong> <span id="device-mqtt">-</span></div>
+                    </div>
+                </div>
+                <div class="phase-card">
+                    <div class="phase-title">Memory & Performance</div>
+                    <div style="text-align: left; font-size: 0.875rem;">
+                        <div style="margin: 0.25rem 0;"><strong>Free Heap:</strong> <span id="device-heap">-</span> KB</div>
+                        <div style="margin: 0.25rem 0;"><strong>CPU Freq:</strong> <span id="device-cpu">-</span> MHz</div>
+                        <div style="margin: 0.25rem 0;"><strong>Telegrams:</strong> <span id="device-telegrams">-</span></div>
+                    </div>
+                </div>
+                <div class="phase-card">
+                    <div class="phase-title">Data Quality</div>
+                    <div style="text-align: left; font-size: 0.875rem;">
+                        <div style="margin: 0.25rem 0;"><strong>Total Telegrams:</strong> <span id="telegram-count">-</span></div>
+                        <div style="margin: 0.25rem 0;"><strong>Errors:</strong> <span id="telegram-errors">-</span></div>
+                        <div style="margin: 0.25rem 0;"><strong>Error Rate:</strong> <span id="error-rate">-</span>%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Dashboard Grid -->
         <div class="dashboard-grid">
             <!-- Current Power Usage -->
@@ -647,6 +695,27 @@
             </button>
         </div>
         <div class="config-content">
+            <!-- Device Settings Section -->
+            <div class="config-section">
+                <div class="config-section-title">
+                    <i class="fas fa-cog"></i>
+                    Device Settings
+                    <button id="load-device-settings" class="time-btn" style="margin-left: auto; font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="loadDeviceSettings()">
+                        <i class="fas fa-download"></i> Load from Device
+                    </button>
+                </div>
+                <div class="config-form-group">
+                    <label class="config-label" for="device-hostname">Device Hostname</label>
+                    <input type="text" class="config-input" id="device-hostname-input" placeholder="dsmr-logger">
+                    <div class="config-help">Network hostname for the device</div>
+                </div>
+                <div class="config-form-group">
+                    <label class="config-label" for="telegram-interval">Telegram Reading Interval</label>
+                    <input type="number" class="config-input" id="telegram-interval" min="1" max="300" placeholder="10">
+                    <div class="config-help">Seconds between telegram readings (1-300)</div>
+                </div>
+            </div>
+
             <!-- Energy Prices Section -->
             <div class="config-section">
                 <div class="config-section-title">
@@ -655,18 +724,18 @@
                 </div>
                 <div class="config-form-group">
                     <label class="config-label" for="price-electricity-low">Electricity Tariff 1 (Low)</label>
-                    <input type="number" class="config-input" id="price-electricity-low" step="0.001" min="0" placeholder="0.230">
-                    <div class="config-help">Price per kWh in EUR (typically night/weekend rate)</div>
+                    <input type="number" class="config-input" id="price-electricity-low" step="0.001" min="0" max="10" placeholder="0.230">
+                    <div class="config-help">Price per kWh in EUR (will be saved to device as ed_tariff1)</div>
                 </div>
                 <div class="config-form-group">
                     <label class="config-label" for="price-electricity-high">Electricity Tariff 2 (High)</label>
-                    <input type="number" class="config-input" id="price-electricity-high" step="0.001" min="0" placeholder="0.250">
-                    <div class="config-help">Price per kWh in EUR (typically day rate)</div>
+                    <input type="number" class="config-input" id="price-electricity-high" step="0.001" min="0" max="10" placeholder="0.250">
+                    <div class="config-help">Price per kWh in EUR (will be saved to device as ed_tariff2)</div>
                 </div>
                 <div class="config-form-group">
                     <label class="config-label" for="price-gas">Gas Price</label>
-                    <input type="number" class="config-input" id="price-gas" step="0.001" min="0" placeholder="0.850">
-                    <div class="config-help">Price per m³ in EUR</div>
+                    <input type="number" class="config-input" id="price-gas" step="0.001" min="0" max="10" placeholder="0.850">
+                    <div class="config-help">Price per m³ in EUR (will be saved to device as gd_tariff)</div>
                 </div>
             </div>
 
@@ -754,7 +823,7 @@
             return { ...DEFAULT_CONFIG };
         }
 
-        function saveConfiguration() {
+        async function saveConfiguration() {
             try {
                 // Get values from form
                 const electricityLow = parseFloat(document.getElementById('price-electricity-low').value);
@@ -785,15 +854,31 @@
                     return;
                 }
 
-                // Update configuration
+                // Update local configuration first
                 CONFIG.ENERGY_PRICES.electricity_low = electricityLow;
                 CONFIG.ENERGY_PRICES.electricity_high = electricityHigh;
                 CONFIG.ENERGY_PRICES.gas = gasPrice;
-                CONFIG.LIVE_UPDATE_INTERVAL = liveRefresh * 1000; // Convert to milliseconds
+                CONFIG.LIVE_UPDATE_INTERVAL = liveRefresh * 1000;
                 CONFIG.HISTORICAL_UPDATE_INTERVAL = historicalRefresh * 1000;
 
                 // Save to localStorage
                 localStorage.setItem('energy-dashboard-config', JSON.stringify(CONFIG));
+
+                // Try to update energy pricing via Smart Meter API
+                try {
+                    updateConnectionStatus('connecting', 'Updating energy pricing...');
+                    
+                    await Promise.all([
+                        updateSmartMeterSetting('ed_tariff1', electricityLow),
+                        updateSmartMeterSetting('ed_tariff2', electricityHigh),
+                        updateSmartMeterSetting('gd_tariff', gasPrice)
+                    ]);
+                    
+                    updateConnectionStatus('connected', 'Energy pricing updated successfully');
+                } catch (deviceError) {
+                    console.warn('Failed to update energy pricing:', deviceError);
+                    updateConnectionStatus('connecting', 'Local settings saved, energy pricing update failed');
+                }
 
                 // Restart intervals with new settings
                 restartUpdateIntervals();
@@ -801,8 +886,6 @@
                 // Close panel and show success
                 closeConfigPanel();
                 
-                // Temporarily update connection status to show success
-                updateConnectionStatus('connected', 'Settings saved successfully');
                 setTimeout(() => {
                     updateConnectionStatus('connected', 'Connected to DSMR Logger');
                 }, 3000);
@@ -810,7 +893,64 @@
                 console.log('Configuration saved:', CONFIG);
             } catch (error) {
                 console.error('Error saving configuration:', error);
+                updateConnectionStatus('error', 'Failed to save configuration');
                 alert('Failed to save configuration: ' + error.message);
+            }
+        }
+
+        // Smart Meter settings (energy pricing, meter config)
+        // Uses /api/v2/sm/settings endpoint - values must be sent as strings!
+        async function updateSmartMeterSetting(name, value) {
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/sm/settings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        value: value.toString() // Always send as string!
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log(`Updated Smart Meter setting ${name}:`, result);
+                return result;
+            } catch (error) {
+                console.error(`Error updating Smart Meter setting ${name}:`, error);
+                throw error;
+            }
+        }
+
+        // Device system settings (hostname, MQTT, etc.)
+        // Uses /api/v2/dev/settings endpoint - values must be sent as strings!
+        async function updateDeviceSetting(name, value) {
+            try {
+                const response = await fetch(`${CONFIG.API_BASE}/dev/settings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        value: value.toString() // Always send as string!
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log(`Updated device setting ${name}:`, result);
+                return result;
+            } catch (error) {
+                console.error(`Error updating device setting ${name}:`, error);
+                throw error;
             }
         }
 
@@ -829,25 +969,163 @@
             }
         }
 
-        function loadConfigurationIntoForm() {
+        // Load current device and Smart Meter settings from the device
+        async function loadConfigurationIntoForm() {
+            // Load local config defaults first
             document.getElementById('price-electricity-low').value = CONFIG.ENERGY_PRICES.electricity_low.toFixed(3);
             document.getElementById('price-electricity-high').value = CONFIG.ENERGY_PRICES.electricity_high.toFixed(3);
             document.getElementById('price-gas').value = CONFIG.ENERGY_PRICES.gas.toFixed(3);
             document.getElementById('refresh-live').value = Math.round(CONFIG.LIVE_UPDATE_INTERVAL / 1000);
             document.getElementById('refresh-historical').value = Math.round(CONFIG.HISTORICAL_UPDATE_INTERVAL / 1000);
+            
+            // Auto-load device settings and Smart Meter settings from device
+            try {
+                await Promise.all([
+                    loadDeviceSettingsIntoForm(),
+                    loadSmartMeterSettingsIntoForm()
+                ]);
+                console.log('Auto-loaded device and Smart Meter settings');
+            } catch (error) {
+                console.warn('Failed to auto-load some device settings:', error);
+                // Continue with local config values if device loading fails
+            }
+        }
+
+        // Load device system settings (hostname, etc.)
+        async function loadDeviceSettingsIntoForm() {
+            try {
+                const settings = await fetchAPI('/dev/settings');
+                console.log('Loading device settings:', settings);
+                
+                if (settings && settings.system && Array.isArray(settings.system)) {
+                    // Convert array format to object for easier lookup
+                    const deviceSettings = {};
+                    settings.system.forEach(setting => {
+                        if (setting.name && setting.value !== undefined) {
+                            deviceSettings[setting.name] = setting.value;
+                        }
+                    });
+                    
+                    // Load device configuration into form
+                    if (deviceSettings.hostname) {
+                        document.getElementById('device-hostname-input').value = deviceSettings.hostname;
+                    }
+                    if (deviceSettings.tlgrm_interval) {
+                        document.getElementById('telegram-interval').value = deviceSettings.tlgrm_interval;
+                    }
+                    
+                    console.log('Device settings loaded successfully');
+                } else {
+                    throw new Error('No device settings data received');
+                }
+            } catch (error) {
+                console.warn('Failed to load device settings:', error);
+                throw error;
+            }
+        }
+
+        // Load Smart Meter settings (energy pricing)
+        async function loadSmartMeterSettingsIntoForm() {
+            try {
+                const settings = await fetchAPI('/sm/settings');
+                console.log('Loading Smart Meter settings:', settings);
+                
+                if (settings && settings.settings && Array.isArray(settings.settings)) {
+                    // Convert array format to object for easier lookup
+                    const smSettings = {};
+                    settings.settings.forEach(setting => {
+                        if (setting.name && setting.value !== undefined) {
+                            smSettings[setting.name] = setting.value;
+                        }
+                    });
+                    
+                    // Load energy pricing into form
+                    if (smSettings.ed_tariff1 !== undefined) {
+                        document.getElementById('price-electricity-low').value = parseFloat(smSettings.ed_tariff1).toFixed(3);
+                    }
+                    if (smSettings.ed_tariff2 !== undefined) {
+                        document.getElementById('price-electricity-high').value = parseFloat(smSettings.ed_tariff2).toFixed(3);
+                    }
+                    if (smSettings.gd_tariff !== undefined) {
+                        document.getElementById('price-gas').value = parseFloat(smSettings.gd_tariff).toFixed(3);
+                    }
+                    
+                    console.log('Smart Meter settings loaded successfully');
+                } else {
+                    throw new Error('No Smart Meter settings data received');
+                }
+            } catch (error) {
+                console.warn('Failed to load Smart Meter settings:', error);
+                throw error;
+            }
+        }
+
+        async function loadDeviceSettings() {
+            try {
+                const button = document.getElementById('load-device-settings');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+                button.disabled = true;
+
+                const settings = await fetchAPI('/dev/settings');
+                console.log('Raw settings response:', settings);
+                
+                if (settings && settings.system && Array.isArray(settings.system)) {
+                    // Convert array format to object for easier lookup
+                    const deviceSettings = {};
+                    settings.system.forEach(setting => {
+                        if (setting.name && setting.value !== undefined) {
+                            deviceSettings[setting.name] = setting.value;
+                        }
+                    });
+                    
+                    console.log('Parsed device settings:', deviceSettings);
+                    
+                    // Load device configuration into form
+                    if (deviceSettings.hostname) {
+                        document.getElementById('device-hostname-input').value = deviceSettings.hostname;
+                    }
+                    if (deviceSettings.tlgrm_interval) {
+                        document.getElementById('telegram-interval').value = deviceSettings.tlgrm_interval;
+                    }
+                    
+                    // Note: Energy prices don't seem to be in the system settings
+                    // They might be in a different endpoint or not configurable via API
+                    console.log('Available settings:', Object.keys(deviceSettings));
+                    
+                    // Show success message
+                    button.innerHTML = '<i class="fas fa-check"></i> Loaded';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error('No settings data received or unexpected format');
+                }
+                
+            } catch (error) {
+                console.error('Error loading device settings:', error);
+                const button = document.getElementById('load-device-settings');
+                button.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                button.disabled = false;
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fas fa-download"></i> Load from Device';
+                }, 2000);
+                alert('Failed to load device settings: ' + error.message);
+            }
         }
 
         // Configuration panel functions
-        function openConfigPanel() {
+        async function openConfigPanel() {
             const panel = document.getElementById('config-panel');
             const overlay = document.getElementById('config-overlay');
             
-            // Load current values into form
-            loadConfigurationIntoForm();
-            
-            // Show panel
+            // Show panel first
             panel.classList.add('open');
             overlay.classList.add('open');
+            
+            // Load current values into form (async)
+            await loadConfigurationIntoForm();
         }
 
         function closeConfigPanel() {
@@ -890,10 +1168,86 @@
             }
         }
 
+        async function fetchDeviceInfo() {
+            try {
+                const devInfo = await fetchAPI('/dev/info');
+                console.log('Raw device info response:', devInfo);
+                
+                if (devInfo && devInfo.devinfo) {
+                    const info = devInfo.devinfo;
+                    
+                    // Update device info elements (using actual field names from API)
+                    document.getElementById('device-hostname').textContent = info.hostname || '-';
+                    document.getElementById('device-firmware').textContent = info.fwversion || '-';
+                    document.getElementById('device-uptime').textContent = info.uptime || '-';
+                    document.getElementById('device-ip').textContent = info.ipaddress || '-';
+                    document.getElementById('device-rssi').textContent = info.wifi_rssi || '-';
+                    document.getElementById('device-mqtt').textContent = (info.mqtt_broker_connected === 'yes') ? 'Connected' : 'Disconnected';
+                    document.getElementById('device-heap').textContent = info.free_heap ? Math.round(info.free_heap / 1024) : '-';
+                    document.getElementById('device-cpu').textContent = info.cpu_freq || '-';
+                    
+                    // Calculate telegram stats (using actual field names)
+                    const telegramCount = info.telegram_count || 0;
+                    const telegramErrors = info.telegram_errors || 0;
+                    const errorRate = telegramCount > 0 ? ((telegramErrors / telegramCount) * 100).toFixed(2) : '0.00';
+                    
+                    document.getElementById('telegram-count').textContent = telegramCount.toLocaleString();
+                    document.getElementById('telegram-errors').textContent = telegramErrors.toLocaleString();
+                    document.getElementById('error-rate').textContent = errorRate;
+                    
+                    // Update device status based on connection quality
+                    const deviceStatusEl = document.getElementById('device-status');
+                    if (deviceStatusEl) {
+                        const rssi = info.wifi_rssi || null;
+                        const mqttConnected = (info.mqtt_broker_connected === 'yes');
+                        const errorRateNum = parseFloat(errorRate);
+                        
+                        // If we have data quality indicators, use those primarily
+                        if (telegramCount > 0) {
+                            if (errorRateNum < 1) {
+                                deviceStatusEl.className = 'status-indicator status-connected';
+                                deviceStatusEl.innerHTML = '<i class="fas fa-circle"></i> Excellent';
+                            } else if (errorRateNum < 5) {
+                                deviceStatusEl.className = 'status-indicator status-connecting';
+                                deviceStatusEl.innerHTML = '<i class="fas fa-circle"></i> Good';
+                            } else {
+                                deviceStatusEl.className = 'status-indicator status-error';
+                                deviceStatusEl.innerHTML = '<i class="fas fa-circle"></i> Poor Quality';
+                            }
+                        } else if (rssi !== null && rssi > -70) {
+                            // Use WiFi signal if available
+                            if (rssi > -50) {
+                                deviceStatusEl.className = 'status-indicator status-connected';
+                                deviceStatusEl.innerHTML = '<i class="fas fa-circle"></i> Good Signal';
+                            } else {
+                                deviceStatusEl.className = 'status-indicator status-connecting';
+                                deviceStatusEl.innerHTML = '<i class="fas fa-circle"></i> Weak Signal';
+                            }
+                        } else {
+                            // Fallback - if we can fetch device info at all, it's at least connected
+                            deviceStatusEl.className = 'status-indicator status-connecting';
+                            deviceStatusEl.innerHTML = '<i class="fas fa-circle"></i> Connected';
+                        }
+                    }
+                }
+                
+                return devInfo;
+            } catch (error) {
+                console.error('Error fetching device info:', error);
+                const deviceStatusEl = document.getElementById('device-status');
+                if (deviceStatusEl) {
+                    deviceStatusEl.className = 'status-indicator status-error';
+                    deviceStatusEl.innerHTML = '<i class="fas fa-circle"></i> Error';
+                }
+                throw error;
+            }
+        }
+
         async function updateHistoricalDataIfNeeded() {
             try {
                 await updateEnergyToday();
                 await updateMonthlyData();
+                await fetchDeviceInfo(); // Update device info with historical data
                 updateHistoricalData();
                 state.lastHistoricalUpdate = Date.now();
             } catch (error) {
@@ -1132,31 +1486,78 @@
             try {
                 updateConnectionStatus('connecting', 'Fetching current data...');
                 
-                // Fetch current actual data from v2 API
+                // Fetch from /sm/actual endpoint (most reliable)
                 const actualData = await fetchAPI('/sm/actual');
+                console.log('Raw API response from /sm/actual:', actualData);
                 
-                // Parse the flat object format
+                // Parse the data format based on API response structure
                 const parsed = {};
                 
-                if (actualData && actualData.actual && typeof actualData.actual === 'object') {
-                    // The API returns a flat object with field names as keys
-                    Object.entries(actualData.actual).forEach(([key, value]) => {
-                        if (typeof value === 'number' || !isNaN(Number(value))) {
-                            parsed[key] = {
-                                value: Number(value),
-                                unit: getFieldUnit(key)
-                            };
-                        }
-                    });
+                if (actualData && actualData.actual) {
+                    // Check if actual is an array (per OpenAPI spec) or object (legacy)
+                    if (Array.isArray(actualData.actual)) {
+                        console.log('Parsing /sm/actual as array format');
+                        actualData.actual.forEach(field => {
+                            if (field.name && (field.value !== undefined && field.value !== null)) {
+                                const numValue = parseFloat(field.value);
+                                if (!isNaN(numValue)) {
+                                    parsed[field.name] = {
+                                        value: numValue,
+                                        unit: field.unit || getFieldUnit(field.name)
+                                    };
+                                } else if (field.name === 'timestamp') {
+                                    // Keep timestamp as string
+                                    parsed[field.name] = {
+                                        value: field.value,
+                                        unit: field.unit || ''
+                                    };
+                                }
+                            }
+                        });
+                    } else if (typeof actualData.actual === 'object') {
+                        console.log('Parsing /sm/actual as flat object format');
+                        // /sm/actual returns a flat object with field names as keys
+                        Object.entries(actualData.actual).forEach(([key, value]) => {
+                            if (typeof value === 'number' || !isNaN(Number(value))) {
+                                parsed[key] = {
+                                    value: Number(value),
+                                    unit: getFieldUnit(key)
+                                };
+                            } else if (key === 'timestamp') {
+                                parsed[key] = {
+                                    value: value,
+                                    unit: ''
+                                };
+                            }
+                        });
+                    }
+                }
+                
+                console.log('Parsed data keys:', Object.keys(parsed));
+                console.log('Sample parsed data:', {
+                    power_delivered: parsed.power_delivered,
+                    energy_delivered_tariff1: parsed.energy_delivered_tariff1,
+                    energy_delivered_tariff2: parsed.energy_delivered_tariff2
+                });
+                
+                // Validate that we have essential fields
+                const essentialFields = ['power_delivered', 'energy_delivered_tariff1', 'energy_delivered_tariff2'];
+                const missingFields = essentialFields.filter(field => !parsed[field]);
+                
+                if (missingFields.length > 0) {
+                    console.warn('Missing essential fields:', missingFields);
+                    console.warn('Available fields:', Object.keys(parsed));
+                    updateConnectionStatus('connecting', `Missing data: ${missingFields.join(', ')}`);
+                } else {
+                    updateConnectionStatus('connected', 'Connected to DSMR Logger');
                 }
                 
                 state.currentData = parsed;
-                updateConnectionStatus('connected', 'Connected to DSMR Logger');
                 return state.currentData;
                 
             } catch (error) {
                 console.error('Error fetching current data:', error);
-                updateConnectionStatus('error', 'Connection failed');
+                updateConnectionStatus('error', `Connection failed: ${error.message}`);
                 throw error;
             }
         }
@@ -1932,7 +2333,12 @@
         // Main update function (for initial load)
         async function updateAllData() {
             try {
-                await fetchCurrentData();
+                // Fetch current data and device info in parallel for faster loading
+                await Promise.all([
+                    fetchCurrentData(),
+                    fetchDeviceInfo()
+                ]);
+                
                 updateCurrentPowerDisplay();
                 await updateEnergyToday();
                 updateGasUsage();
