@@ -1,0 +1,1511 @@
+﻿{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "DSMRlogger32 REST API",
+    "version": "2.0",
+    "description": "API voor uitlezen van gegevens uit een slimme meter via DSMRlogger32."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8090/api/v2"
+    }
+  ],
+  "paths": {
+    "/sm/info": {
+      "get": {
+        "summary": "Systeeminformatie van de Slimme Meter",
+        "responses": {
+          "200": {
+            "description": "Succesvolle respons",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "info": {
+                      "type": "object",
+                      "properties": {
+                        "identification": {
+                          "type": "string"
+                        },
+                        "p1_version": {
+                          "type": "string"
+                        },
+                        "equipment_id": {
+                          "type": "string"
+                        },
+                        "electricity_tariff": {
+                          "type": "string"
+                        },
+                        "mbus1_device_type": {
+                          "type": "integer"
+                        },
+                        "mbus1_equipment_id_tc": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sm/actual": {
+      "get": {
+        "summary": "Actuele waarden van de slimme meter",
+        "responses": {
+          "200": {
+            "description": "JSON met actuele meterstanden in flat object format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "actual": {
+                      "type": "object",
+                      "properties": {
+                        "timestamp": {
+                          "type": "string",
+                          "example": "250805160612S"
+                        },
+                        "energy_delivered_tariff1": {
+                          "type": "number",
+                          "example": 72108.359
+                        },
+                        "energy_delivered_tariff2": {
+                          "type": "number",
+                          "example": 64327.867
+                        },
+                        "energy_returned_tariff1": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "energy_returned_tariff2": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "power_delivered": {
+                          "type": "number",
+                          "example": 1.145
+                        },
+                        "power_returned": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "voltage_l1": {
+                          "type": "number",
+                          "example": 233
+                        },
+                        "voltage_l2": {
+                          "type": "number",
+                          "example": 233
+                        },
+                        "voltage_l3": {
+                          "type": "number",
+                          "example": 231
+                        },
+                        "current_l1": {
+                          "type": "number",
+                          "example": 2
+                        },
+                        "current_l2": {
+                          "type": "number",
+                          "example": 1
+                        },
+                        "current_l3": {
+                          "type": "number",
+                          "example": 2
+                        },
+                        "power_delivered_l1": {
+                          "type": "number",
+                          "example": 0.501
+                        },
+                        "power_delivered_l2": {
+                          "type": "number",
+                          "example": 0.169
+                        },
+                        "power_delivered_l3": {
+                          "type": "number",
+                          "example": 0.475
+                        },
+                        "power_returned_l1": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "power_returned_l2": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "power_returned_l3": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "mbus1_delivered": {
+                          "type": "number",
+                          "example": 15897.74
+                        },
+                        "mbus2_delivered": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "mbus3_delivered": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "mbus4_delivered": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "gas_delivered": {
+                          "type": "number",
+                          "example": 15897.741
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sm/fields": {
+      "get": {
+        "summary": "Alle beschikbare velden van de slimme meter",
+        "responses": {
+          "200": {
+            "description": "JSON met alle velden en hun waarden in flat object format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "fields": {
+                      "type": "object",
+                      "description": "Alle beschikbare velden met hun actuele waarden",
+                      "properties": {
+                        "identification": {
+                          "type": "string",
+                          "example": "XMX5LGBBLA4415412281"
+                        },
+                        "p1_version": {
+                          "type": "string",
+                          "example": "50"
+                        },
+                        "timestamp": {
+                          "type": "string",
+                          "example": "250805160633S"
+                        },
+                        "equipment_id": {
+                          "type": "string",
+                          "example": "4530303436303034303430303631383137"
+                        },
+                        "energy_delivered_tariff1": {
+                          "type": "number",
+                          "example": 72108.359
+                        },
+                        "energy_delivered_tariff2": {
+                          "type": "number",
+                          "example": 64327.871
+                        },
+                        "energy_returned_tariff1": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "energy_returned_tariff2": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "electricity_tariff": {
+                          "type": "string",
+                          "example": "0002"
+                        },
+                        "power_delivered": {
+                          "type": "number",
+                          "example": 1.143
+                        },
+                        "power_returned": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "electricity_failures": {
+                          "type": "number",
+                          "example": 39
+                        },
+                        "electricity_long_failures": {
+                          "type": "number",
+                          "example": 21
+                        },
+                        "electricity_failure_log": {
+                          "type": "string",
+                          "example": "(10)(0-0:96.7.19)(191208200852W)(0000000270*s)"
+                        },
+                        "electricity_sags_l1": {
+                          "type": "number",
+                          "example": 20
+                        },
+                        "electricity_sags_l2": {
+                          "type": "number",
+                          "example": 14
+                        },
+                        "electricity_sags_l3": {
+                          "type": "number",
+                          "example": 22
+                        },
+                        "electricity_swells_l1": {
+                          "type": "number",
+                          "example": 6
+                        },
+                        "electricity_swells_l2": {
+                          "type": "number",
+                          "example": 6
+                        },
+                        "electricity_swells_l3": {
+                          "type": "number",
+                          "example": 3
+                        },
+                        "voltage_l1": {
+                          "type": "number",
+                          "example": 232
+                        },
+                        "voltage_l2": {
+                          "type": "number",
+                          "example": 233
+                        },
+                        "voltage_l3": {
+                          "type": "number",
+                          "example": 232
+                        },
+                        "current_l1": {
+                          "type": "number",
+                          "example": 2
+                        },
+                        "current_l2": {
+                          "type": "number",
+                          "example": 1
+                        },
+                        "current_l3": {
+                          "type": "number",
+                          "example": 2
+                        },
+                        "power_delivered_l1": {
+                          "type": "number",
+                          "example": 0.504
+                        },
+                        "power_delivered_l2": {
+                          "type": "number",
+                          "example": 0.169
+                        },
+                        "power_delivered_l3": {
+                          "type": "number",
+                          "example": 0.468
+                        },
+                        "power_returned_l1": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "power_returned_l2": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "power_returned_l3": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "mbus1_device_type": {
+                          "type": "number",
+                          "example": 3
+                        },
+                        "mbus1_equipment_id_tc": {
+                          "type": "string",
+                          "example": "4730303431303031373634333233383137"
+                        },
+                        "mbus1_delivered": {
+                          "type": "number",
+                          "example": 15897.74
+                        },
+                        "mbus2_delivered": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "mbus3_delivered": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "mbus4_delivered": {
+                          "type": "number",
+                          "example": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sm/fields/{fieldName}": {
+      "get": {
+        "summary": "Specifiek veld uit het laatst gelezen telegram",
+        "parameters": [
+          {
+            "name": "fieldName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "De naam van het gewenste veld (bijv. `current_l1`)",
+            "example": "current_l1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON met waarde van het gevraagde veld en timestamp",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "fields": {
+                      "type": "object",
+                      "properties": {
+                        "timestamp": {
+                          "type": "string",
+                          "example": "250805160633S"
+                        }
+                      },
+                      "additionalProperties": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "example": {
+                        "timestamp": "250805160633S",
+                        "current_l1": 2
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Veld niet gevonden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Field not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sm/telegram": {
+      "get": {
+        "summary": "Onbewerkt telegram van de slimme meter",
+        "responses": {
+          "200": {
+            "description": "Ruwe telegram string (inclusief line endings en checksum)",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dev/info": {
+      "get": {
+        "summary": "Uitgebreide device informatie",
+        "responses": {
+          "200": {
+            "description": "JSON met device informatie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "devinfo": {
+                      "type": "object",
+                      "properties": {
+                        "author": {
+                          "type": "string",
+                          "example": "Willem Aandewiel (www.aandewiel.nl)"
+                        },
+                        "fwversion": {
+                          "type": "string",
+                          "example": "v5.0.5 (24-04-2023)"
+                        },
+                        "compiled": {
+                          "type": "string",
+                          "example": "Apr 24 2023 13:40:26"
+                        },
+                        "hostname": {
+                          "type": "string",
+                          "example": "DSMR-MW9"
+                        },
+                        "ipaddress": {
+                          "type": "string",
+                          "example": "192.168.2.234"
+                        },
+                        "macaddress": {
+                          "type": "string",
+                          "example": "70:B8:F6:96:65:68"
+                        },
+                        "indexfile": {
+                          "type": "string",
+                          "example": "DSMRindex.html"
+                        },
+                        "free_heap": {
+                          "type": "integer",
+                          "example": 230796
+                        },
+                        "min_free_heap": {
+                          "type": "integer",
+                          "example": 3675139
+                        },
+                        "psram_size": {
+                          "type": "integer",
+                          "example": 4191771
+                        },
+                        "free_psram_size": {
+                          "type": "integer",
+                          "example": 3898407
+                        },
+                        "used_psram_size": {
+                          "type": "integer",
+                          "example": 293364
+                        },
+                        "chip_model": {
+                          "type": "string",
+                          "example": "ESP32-D0WDQ5"
+                        },
+                        "sdk_version": {
+                          "type": "string",
+                          "example": "v4.4.2"
+                        },
+                        "cpu_freq": {
+                          "type": "integer",
+                          "example": 240
+                        },
+                        "sketch_size": {
+                          "type": "integer",
+                          "example": 1212464
+                        },
+                        "free_sketch_space": {
+                          "type": "integer",
+                          "example": 1310720
+                        },
+                        "filedevSetting_size": {
+                          "type": "integer",
+                          "example": 1378241
+                        },
+                        "flashchip_speed": {
+                          "type": "integer",
+                          "example": 80000000
+                        },
+                        "flashchip_mode": {
+                          "type": "string",
+                          "example": "QIO"
+                        },
+                        "filesystem_type": {
+                          "type": "string",
+                          "example": "SPIFFS"
+                        },
+                        "compile_options": {
+                          "type": "string"
+                        },
+                        "ssid": {
+                          "type": "string",
+                          "example": "Nine"
+                        },
+                        "wifi_rssi": {
+                          "type": "integer",
+                          "example": -45
+                        },
+                        "time": {
+                          "type": "string",
+                          "example": "05-08-2025 15:27:35"
+                        },
+                        "uptime": {
+                          "type": "string",
+                          "example": "22(d)-06:56(H:m)"
+                        },
+                        "uptime_sec": {
+                          "type": "integer",
+                          "example": 1925818
+                        },
+                        "daily_reboot": {
+                          "type": "integer",
+                          "example": 0
+                        },
+                        "run_as_ap": {
+                          "type": "integer",
+                          "example": 0
+                        },
+                        "oled_type": {
+                          "type": "integer",
+                          "example": 0
+                        },
+                        "oled_flip_screen": {
+                          "type": "integer",
+                          "example": 0
+                        },
+                        "neo_brightness": {
+                          "type": "integer",
+                          "example": 75
+                        },
+                        "smhasfaseinfo": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "telegram_interval": {
+                          "type": "integer",
+                          "example": 2
+                        },
+                        "telegram_count": {
+                          "type": "integer",
+                          "example": 2151591
+                        },
+                        "telegram_errors": {
+                          "type": "integer",
+                          "example": 3668
+                        },
+                        "mqtt_broker": {
+                          "type": "string",
+                          "example": ":1883"
+                        },
+                        "mqtt_interval": {
+                          "type": "integer",
+                          "example": 0
+                        },
+                        "mqtt_broker_connected": {
+                          "type": "string",
+                          "enum": [
+                            "yes",
+                            "no"
+                          ],
+                          "example": "no"
+                        },
+                        "reboots": {
+                          "type": "integer",
+                          "example": 50
+                        },
+                        "last_reset_cpu0": {
+                          "type": "string",
+                          "example": "[01] Vbat power on reset"
+                        },
+                        "last_reset_cpu1": {
+                          "type": "string",
+                          "example": "[14] for APP CPU, reseted by PRO CPU"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dev/time": {
+      "get": {
+        "summary": "Huidige systeem tijd informatie",
+        "responses": {
+          "200": {
+            "description": "JSON met tijd informatie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "devtime": {
+                      "type": "object",
+                      "properties": {
+                        "timestamp": {
+                          "type": "string",
+                          "example": "250805160658S"
+                        },
+                        "time": {
+                          "type": "string",
+                          "example": "05-08-2025 16:07:00"
+                        },
+                        "time_rev": {
+                          "type": "string",
+                          "example": "2025-08-05 16:07:00"
+                        },
+                        "epoch": {
+                          "type": "integer",
+                          "example": 1754402820
+                        },
+                        "uptime": {
+                          "type": "string",
+                          "example": "22(d)-07:36(H:m)"
+                        },
+                        "uptime_secs": {
+                          "type": "integer",
+                          "example": 1928183
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dev/settings": {
+      "get": {
+        "summary": "Alle aanpasbare systeem instellingen",
+        "responses": {
+          "200": {
+            "description": "JSON met alle instellingen",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "system": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Setting name/key"
+                          },
+                          "value": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "integer"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ],
+                            "description": "Setting value"
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "Setting type (s=string, i=integer, 1=integer)"
+                          },
+                          "maxlen": {
+                            "type": "integer",
+                            "description": "Maximum length for string values"
+                          },
+                          "min": {
+                            "type": "integer",
+                            "description": "Minimum value for numeric settings"
+                          },
+                          "max": {
+                            "type": "integer",
+                            "description": "Maximum value for numeric settings"
+                          }
+                        }
+                      },
+                      "example": [
+                        {
+                          "name": "hostname",
+                          "value": "DSMR-MW9",
+                          "type": "s",
+                          "maxlen": 29
+                        },
+                        {
+                          "name": "tlgrm_interval",
+                          "value": 2,
+                          "type": "i",
+                          "min": 2,
+                          "max": 60
+                        },
+                        {
+                          "name": "mqtt_broker",
+                          "value": "",
+                          "type": "s",
+                          "maxlen": 100
+                        },
+                        {
+                          "name": "mqtt_broker_port",
+                          "value": 1883,
+                          "type": "1",
+                          "min": 1,
+                          "max": 9999
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/settings": {
+      "post": {
+        "summary": "Update device system instellingen (DEPRECATED - use /dev/settings or /sm/settings)",
+        "description": "**DEPRECATED**: This endpoint combines two different setting types. Use the specific endpoints instead:\n- For system settings: POST /dev/settings\n- For energy pricing: POST /sm/settings\n\nThis endpoint is kept for backward compatibility but may not work correctly for all settings.\n",
+        "deprecated": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Naam van de instelling"
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "Nieuwe waarde voor de instelling (always as string)"
+                  }
+                },
+                "required": [
+                  "name",
+                  "value"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Instelling succesvol bijgewerkt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sm/settings": {
+      "get": {
+        "summary": "Slimme meter instellingen (energie tarieven en meter configuratie)",
+        "responses": {
+          "200": {
+            "description": "JSON met slimme meter instellingen",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "settings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Setting name/key"
+                          },
+                          "value": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "integer"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ],
+                            "description": "Setting value"
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "Setting type (s=string, i=integer, f=float)"
+                          },
+                          "min": {
+                            "type": "number",
+                            "description": "Minimum value for numeric settings"
+                          },
+                          "max": {
+                            "type": "number",
+                            "description": "Maximum value for numeric settings"
+                          },
+                          "dec": {
+                            "type": "integer",
+                            "description": "Decimal places for float values"
+                          }
+                        }
+                      },
+                      "example": [
+                        {
+                          "name": "ed_tariff1",
+                          "value": 0.235,
+                          "type": "f",
+                          "min": 0,
+                          "max": 10,
+                          "dec": 5
+                        },
+                        {
+                          "name": "gd_tariff",
+                          "value": 0.85,
+                          "type": "f",
+                          "min": 0,
+                          "max": 10,
+                          "dec": 5
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Update slimme meter instellingen (energie tarieven)",
+        "description": "Update Smart Meter settings including energy pricing. These settings are separate from device settings.\n\n**IMPORTANT**: All values must be sent as strings, even for numeric values.\n\nAvailable Smart Meter settings:\n- **Energy Pricing**: ed_tariff1, ed_tariff2, er_tariff1, er_tariff2, gd_tariff\n- **Network Costs**: electr_netw_costs, gas_netw_costs\n- **Meter Config**: pre_dsmr40, mbus1_type, mbus2_type, mbus3_type, mbus4_type, sm_has_fase_info\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Naam van de slimme meter instelling",
+                    "enum": [
+                      "ed_tariff1",
+                      "ed_tariff2",
+                      "er_tariff1",
+                      "er_tariff2",
+                      "gd_tariff",
+                      "electr_netw_costs",
+                      "gas_netw_costs",
+                      "pre_dsmr40",
+                      "mbus1_type",
+                      "mbus2_type",
+                      "mbus3_type",
+                      "mbus4_type",
+                      "sm_has_fase_info"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "Nieuwe waarde als string (ook voor numerieke waarden!)"
+                  }
+                },
+                "required": [
+                  "name",
+                  "value"
+                ]
+              },
+              "examples": {
+                "electricity_tariff": {
+                  "summary": "Update electricity tariff 1",
+                  "value": {
+                    "name": "ed_tariff1",
+                    "value": "0.23500"
+                  }
+                },
+                "gas_tariff": {
+                  "summary": "Update gas tariff",
+                  "value": {
+                    "name": "gd_tariff",
+                    "value": "0.85000"
+                  }
+                },
+                "network_costs": {
+                  "summary": "Update electricity network costs",
+                  "value": {
+                    "name": "electr_netw_costs",
+                    "value": "25.50"
+                  }
+                },
+                "meter_config": {
+                  "summary": "Update MBus1 device type",
+                  "value": {
+                    "name": "mbus1_type",
+                    "value": "3"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Slimme meter instelling succesvol bijgewerkt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Naam van de bijgewerkte instelling"
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "Nieuwe waarde van de instelling (als string)"
+                    }
+                  },
+                  "example": {
+                    "name": "gd_tariff",
+                    "value": "0.85000"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hist/actual": {
+      "get": {
+        "summary": "Huidige stroom en gas levering gegevens (circular buffer)",
+        "responses": {
+          "200": {
+            "description": "JSON met actuele historische data in store formaat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "store": {
+                      "type": "object",
+                      "description": "Circular buffer with numbered slots (0-99+)",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "actual": {
+                              "type": "object",
+                              "properties": {
+                                "timestamp": {
+                                  "type": "string",
+                                  "example": "250805141605S"
+                                },
+                                "power_delivered_l1": {
+                                  "type": "number",
+                                  "example": 0.512
+                                },
+                                "power_delivered_l2": {
+                                  "type": "number",
+                                  "example": 0.169
+                                },
+                                "power_delivered_l3": {
+                                  "type": "number",
+                                  "example": 0.413
+                                },
+                                "power_returned_l1": {
+                                  "type": "number",
+                                  "example": 0
+                                },
+                                "power_returned_l2": {
+                                  "type": "number",
+                                  "example": 0
+                                },
+                                "power_returned_l3": {
+                                  "type": "number",
+                                  "example": 0
+                                },
+                                "gas_delivered": {
+                                  "type": "number",
+                                  "example": 15897.487
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hist/hours": {
+      "get": {
+        "summary": "Uurlijkse energie verbruik data",
+        "responses": {
+          "200": {
+            "description": "JSON met uurlijkse data (alle beschikbare data)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hours": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "recnr": {
+                            "type": "integer",
+                            "example": 0
+                          },
+                          "recid": {
+                            "type": "string",
+                            "example": "25080316"
+                          },
+                          "slot": {
+                            "type": "integer",
+                            "example": 32
+                          },
+                          "edt1": {
+                            "type": "number",
+                            "description": "Energy delivered tariff 1",
+                            "example": 72074.805
+                          },
+                          "edt2": {
+                            "type": "number",
+                            "description": "Energy delivered tariff 2",
+                            "example": 64289.109
+                          },
+                          "ert1": {
+                            "type": "number",
+                            "description": "Energy returned tariff 1",
+                            "example": 0
+                          },
+                          "ert2": {
+                            "type": "number",
+                            "description": "Energy returned tariff 2",
+                            "example": 0
+                          },
+                          "gdt": {
+                            "type": "number",
+                            "description": "Gas delivered total",
+                            "example": 15895.868
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hist/hours/{limit}": {
+      "get": {
+        "summary": "Uurlijkse data met limiet",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Aantal records om op te halen",
+            "example": 5
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON met beperkte uurlijkse data (zelfde structuur als /hist/hours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hours": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/paths/~1hist~1hours/get/responses/200/content/application~1json/schema/properties/hours/items"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hist/hours/{limit}/{sort}": {
+      "get": {
+        "summary": "Uurlijkse data met limiet en sortering",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Aantal records om op te halen",
+            "example": 10
+          },
+          {
+            "name": "sort",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "description": "Sorteer richting (asc/desc)",
+            "example": "desc"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON met gesorteerde uurlijkse data (zelfde structuur als /hist/hours)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hours": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/paths/~1hist~1hours/get/responses/200/content/application~1json/schema/properties/hours/items"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hist/days": {
+      "get": {
+        "summary": "Dagelijkse energie verbruik data",
+        "responses": {
+          "200": {
+            "description": "JSON met dagelijkse data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "days": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "recnr": {
+                            "type": "integer",
+                            "example": 0
+                          },
+                          "recid": {
+                            "type": "string",
+                            "example": "25072223"
+                          },
+                          "slot": {
+                            "type": "integer",
+                            "example": 11
+                          },
+                          "edt1": {
+                            "type": "number",
+                            "description": "Energy delivered tariff 1",
+                            "example": 71850.406
+                          },
+                          "edt2": {
+                            "type": "number",
+                            "description": "Energy delivered tariff 2",
+                            "example": 64117.867
+                          },
+                          "ert1": {
+                            "type": "number",
+                            "description": "Energy returned tariff 1",
+                            "example": 0
+                          },
+                          "ert2": {
+                            "type": "number",
+                            "description": "Energy returned tariff 2",
+                            "example": 0
+                          },
+                          "gdt": {
+                            "type": "number",
+                            "description": "Gas delivered total",
+                            "example": 15883.529
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hist/days/{limit}": {
+      "get": {
+        "summary": "Dagelijkse data met limiet",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON met beperkte dagelijkse data (zelfde structuur)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "days": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/paths/~1hist~1days/get/responses/200/content/application~1json/schema/properties/days/items"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hist/days/{limit}/{sort}": {
+      "get": {
+        "summary": "Dagelijkse data met limiet en sortering",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON met gesorteerde dagelijkse data (zelfde structuur)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "days": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/paths/~1hist~1days/get/responses/200/content/application~1json/schema/properties/days/items"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hist/months": {
+      "get": {
+        "summary": "Maandelijkse energie verbruik data",
+        "responses": {
+          "200": {
+            "description": "JSON met maandelijkse data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "months": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "recnr": {
+                            "type": "integer",
+                            "example": 0
+                          },
+                          "recid": {
+                            "type": "string",
+                            "example": "23083123"
+                          },
+                          "slot": {
+                            "type": "integer",
+                            "example": 22
+                          },
+                          "edt1": {
+                            "type": "number",
+                            "example": 54891.742
+                          },
+                          "edt2": {
+                            "type": "number",
+                            "example": 47299.512
+                          },
+                          "ert1": {
+                            "type": "number",
+                            "example": 0
+                          },
+                          "ert2": {
+                            "type": "number",
+                            "example": 0
+                          },
+                          "gdt": {
+                            "type": "number",
+                            "example": 11699.712
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hist/months/{limit}": {
+      "get": {
+        "summary": "Maandelijkse data met limiet",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON met beperkte maandelijkse data (zelfde structuur)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "months": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/paths/~1hist~1months/get/responses/200/content/application~1json/schema/properties/months/items"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hist/months/{limit}/{sort}": {
+      "get": {
+        "summary": "Maandelijkse data met limiet en sortering",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON met gesorteerde maandelijkse data (zelfde structuur)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "months": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/paths/~1hist~1months/get/responses/200/content/application~1json/schema/properties/months/items"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
