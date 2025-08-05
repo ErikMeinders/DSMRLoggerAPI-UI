@@ -8,7 +8,9 @@
     "deploy": "node fm-upload.js dashboard.html dsmr-mw9.local:"
   },
   "dependencies": {
-    "form-data": "^4.0.4"
+    "express": "^5.1.0",
+    "form-data": "^4.0.4",
+    "http-proxy-middleware": "^3.0.5"
   },
   "keywords": [
     "dsmr",
@@ -18,5 +20,14 @@
     "upload"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ErikMeinders/DSMRLoggerAPI-UI.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ErikMeinders/DSMRLoggerAPI-UI/issues"
+  },
+  "homepage": "https://github.com/ErikMeinders/DSMRLoggerAPI-UI#readme"
 }

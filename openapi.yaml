@@ -4,7 +4,8 @@ info:
   version: "2.0"
   description: API voor uitlezen van gegevens uit een slimme meter via DSMRlogger32.
 servers:
-  - url: http://dsmr-mw9.local/api/v2
+  - url: http://localhost:8090/api/v2
+
 paths:
   /sm/info:
     get:
