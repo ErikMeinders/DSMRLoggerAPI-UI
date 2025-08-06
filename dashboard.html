@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Energy Dashboard - DSMR Logger</title>
+    <meta name="theme-color" content="#0f172a">
     
     <!-- Fonts and Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,6 +21,7 @@
     <script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
     
     <style>
+        /* Global reset and utility variables */
         :root {
             /* Horizon Color Palette */
             --horizon-dawn: #ff7c43;
@@ -110,38 +112,62 @@
             line-height: 1.6;
             min-height: 100vh;
             position: relative;
+            /* mesh gradient backdrop */
+            --mesh-1: radial-gradient(1200px 600px at -10% -10%, rgba(146,163,253,0.25), transparent 50%);
+            --mesh-2: radial-gradient(900px 500px at 110% 10%, rgba(255,124,67,0.18), transparent 55%);
+            --mesh-3: radial-gradient(800px 400px at 30% 120%, rgba(0,201,255,0.18), transparent 50%);
+            --mesh-4: radial-gradient(700px 350px at 90% 90%, rgba(255,107,157,0.15), transparent 50%);
         }
 
         body::before {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg-horizon);
-            opacity: 0.03;
+            inset: 0;
+            background:
+                var(--mesh-1),
+                var(--mesh-2),
+                var(--mesh-3),
+                var(--mesh-4),
+                var(--bg-horizon);
+            opacity: 0.25;
+            filter: saturate(120%) blur(0.3px);
+            z-index: -2;
+            pointer-events: none;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 30%, rgba(255,255,255,0) 60%);
+            mix-blend-mode: overlay;
+            opacity: 0.25;
             z-index: -1;
+            pointer-events: none;
         }
 
         .header {
             background: var(--gradient-header);
             color: var(--text-on-dark);
             padding: 1.5rem 2rem 2rem;
-            position: relative;
+            position: sticky;
+            top: 0;
+            z-index: 20;
             overflow: hidden;
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(16px) saturate(140%);
+            border-bottom: 1px solid var(--border-glass);
         }
 
         .header::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="white" opacity="0.1"><path d="M0,20 Q250,80 500,20 T1000,20 V100 H0 Z"/></svg>');
-            background-size: 100% 100%;
+            inset: -20% -10%;
+            background:
+                radial-gradient(60% 60% at 10% -10%, rgba(255,255,255,0.18), rgba(255,255,255,0) 50%),
+                radial-gradient(50% 50% at 90% 0%, rgba(255,255,255,0.12), rgba(255,255,255,0) 55%),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="white" stop-opacity="0.25"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient></defs><path d="M0,240 C180,120 360,120 540,240 C720,360 900,360 1200,240 L1200,400 L0,400Z" fill="url(#g)"/></svg>');
+            background-repeat: no-repeat;
+            background-size: cover, cover, 1200px 400px;
+            animation: float 12s ease-in-out infinite;
             pointer-events: none;
         }
 
@@ -176,22 +202,27 @@
             background: var(--bg-glass-darker);
             border: 1px solid var(--border-glass);
             color: var(--text-on-dark);
-            border-radius: 0.75rem;
+            border-radius: 9999px;
             padding: 0.75rem;
             cursor: pointer;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
+            backdrop-filter: blur(12px) saturate(140%);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            width: 48px;
-            height: 48px;
-            display: flex;
+            width: 52px;
+            height: 52px;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.08);
         }
 
         .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.22);
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.2);
+        }
+        .theme-toggle:active {
+            transform: translateY(0) scale(0.98);
         }
 
         .theme-icon-light,
@@ -219,7 +250,7 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 1.5rem;
+            padding: 2rem 1.5rem 3rem;
             margin-top: -0.5rem;
             position: relative;
             z-index: 1;
@@ -280,31 +311,39 @@
 
         .card {
             background: var(--gradient-card);
-            border-radius: 1rem;
-            padding: 1.25rem;
+            border-radius: 1.25rem;
+            padding: 1.35rem;
             box-shadow: var(--shadow-soft);
             border: 1px solid var(--border-glass);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px) saturate(140%);
             position: relative;
             overflow: hidden;
-            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+            isolation: isolate;
         }
 
         .card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            inset: 0;
+            background: radial-gradient(800px 200px at -10% -20%, rgba(255,255,255,0.24), transparent 60%);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
             height: 2px;
             background: var(--gradient-accent);
-            border-radius: 1rem 1rem 0 0;
+            border-radius: 1.25rem 1.25rem 0 0;
+            opacity: 0.9;
         }
 
         .card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-4px);
             box-shadow: var(--shadow-elevated);
-            border-color: rgba(255, 255, 255, 0.5);
+            border-color: rgba(255, 255, 255, 0.55);
         }
 
         .card-header {
@@ -452,26 +491,34 @@
 
         .chart-container {
             background: var(--gradient-card);
-            border-radius: 1rem;
-            padding: 1.25rem;
+            border-radius: 1.25rem;
+            padding: 1.35rem;
             box-shadow: var(--shadow-soft);
             border: 1px solid var(--border-glass);
             margin-bottom: 1.5rem;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px) saturate(140%);
             position: relative;
             overflow: hidden;
-            transition: all 0.2s ease;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+            isolation: isolate;
         }
 
         .chart-container::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            inset: 0;
+            background: radial-gradient(900px 220px at -15% -25%, rgba(255,255,255,0.18), transparent 60%);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .chart-container::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
             height: 2px;
             background: var(--gradient-accent);
-            border-radius: 1rem 1rem 0 0;
+            border-radius: 1.25rem 1.25rem 0 0;
+            opacity: 0.9;
         }
 
         .chart-container:hover {
@@ -553,9 +600,11 @@
             padding: 0.5rem 1rem;
             border-radius: 9999px;
             font-size: 0.875rem;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.02em;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
         }
 
@@ -583,7 +632,13 @@
             }
             
             .dashboard-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
+            }
+            .dashboard-grid > .card:nth-child(3n) {
+                grid-column: span 2;
+            }
+            @supports (grid-template-columns: subgrid) {
+                .dashboard-grid { grid-template-columns: subgrid; }
             }
             
             .phase-grid {
@@ -653,16 +708,16 @@
         .config-panel {
             position: fixed;
             top: 0;
-            right: -420px;
-            width: 400px;
+            right: -480px;
+            width: 460px;
             height: 100vh;
             background: var(--gradient-card);
             box-shadow: var(--shadow-glass);
             z-index: 999;
-            transition: right 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transition: right 0.45s cubic-bezier(0.4, 0.0, 0.2, 1);
             overflow-y: auto;
             border-left: 1px solid var(--border-glass);
-            backdrop-filter: blur(30px);
+            backdrop-filter: blur(30px) saturate(140%);
         }
 
         .config-panel.open {
@@ -696,6 +751,7 @@
             align-items: center;
             position: relative;
             overflow: hidden;
+            border-bottom: 1px solid var(--border-glass);
         }
 
         .config-header::before {
@@ -1082,10 +1138,16 @@
                 </h1>
                 <div class="subtitle">Beautiful real-time energy monitoring with horizon-inspired design</div>
             </div>
-            <button class="theme-toggle" onclick="toggleTheme()" title="Switch theme">
-                <i class="fas fa-sun theme-icon-light"></i>
-                <i class="fas fa-moon theme-icon-dark"></i>
-            </button>
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+                <div id="theme-label" class="status-indicator status-connecting" style="padding:0.35rem 0.75rem;">
+                    <i class="fas fa-circle"></i>
+                    Theme
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Switch theme (Light/Dark)" aria-label="Toggle dark mode">
+                    <i class="fas fa-sun theme-icon-light" aria-hidden="true"></i>
+                    <i class="fas fa-moon theme-icon-dark" aria-hidden="true"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -3637,30 +3699,53 @@
             const savedTheme = localStorage.getItem('energy-dashboard-theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const theme = savedTheme || (prefersDark ? 'dark' : 'light');
-            
             document.documentElement.setAttribute('data-theme', theme);
-            
+            // update theme label + meta theme-color
+            updateThemeUI(theme);
+
             // Listen for system theme changes
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            const media = window.matchMedia('(prefers-color-scheme: dark)');
+            media.addEventListener('change', (e) => {
                 if (!localStorage.getItem('energy-dashboard-theme')) {
-                    document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    updateThemeUI(newTheme);
                 }
             });
+        }
+        function updateThemeUI(theme) {
+            const label = document.getElementById('theme-label');
+            if (label) {
+                if (theme === 'dark') {
+                    label.className = 'status-indicator status-connected';
+                    label.innerHTML = '<i class="fas fa-circle"></i> Dark';
+                } else {
+                    label.className = 'status-indicator status-connecting';
+                    label.innerHTML = '<i class="fas fa-circle"></i> Light';
+                }
+            }
+            const meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) {
+                meta.setAttribute('content', theme === 'dark' ? '#0f172a' : '#f8fafc');
+            }
         }
 
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('energy-dashboard-theme', newTheme);
-            
+            updateThemeUI(newTheme);
+
             // Add a subtle animation to the theme toggle
             const button = document.querySelector('.theme-toggle');
-            button.style.transform = 'scale(0.9) rotate(180deg)';
-            setTimeout(() => {
-                button.style.transform = '';
-            }, 150);
+            if (button) {
+                button.animate([
+                    { transform: 'scale(1) rotate(0deg)' },
+                    { transform: 'scale(0.9) rotate(180deg)' },
+                    { transform: 'scale(1) rotate(360deg)' }
+                ], { duration: 300, easing: 'ease-out' });
+            }
         }
 
         // Initialize theme first, then dashboard
